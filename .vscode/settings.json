@@ -1,0 +1,9 @@
+{
+    "search.exclude": {
+        ".idea": true,
+        "**/node_modules": true,
+        ".history": true,
+        "dist": true
+    },
+    "typescript.tsdk": "node_modules/typescript/lib"
+}
