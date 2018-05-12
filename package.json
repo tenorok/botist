@@ -7,6 +7,7 @@
     "url": "https://gitlab.com/tenorok/botist.git"
   },
   "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
   "scripts": {
     "test": "NODE_ENV=testing mocha --require ts-node/register test/"
   },
@@ -15,7 +16,15 @@
     "email": "mail@tenorok.ru",
     "homepage": "https://tenorok.ru"
   },
+  "dependencies": {
+    "express": "^4.16.3",
+    "request": "^2.85.0",
+    "request-promise-native": "^1.0.5"
+  },
   "devDependencies": {
+    "@types/express": "^4.11.1",
+    "@types/node-telegram-bot-api": "^0.28.3",
+    "@types/request-promise-native": "^1.0.14",
     "chai": "^4.1.2",
     "eslint": "^4.19.1",
     "eslint-plugin-ascii": "^1.0.0",
