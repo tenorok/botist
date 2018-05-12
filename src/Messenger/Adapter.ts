@@ -3,21 +3,21 @@ import { Request, Response } from 'express';
 import request = require('request-promise-native');
 import {
     IAdapter,
-    IBaseMessage as IBotistMessage,
     IResponse as IBotistResponse,
     IError as IBotistError,
 } from '../Botist';
+import { IBaseMessage } from '../Message';
 
 export class Messenger implements IAdapter {
     private static apiUrl: string = 'https://graph.facebook.com/v3.0/me/messages';
 
     constructor(private token: string, public webHookPath: string) {}
 
-    public onRequest(req: Request, res: Response): IBotistMessage[] {
+    public onRequest(req: Request, res: Response): IBaseMessage[] {
         const body: API.IUpdate = req.body;
         res.sendStatus(200);
 
-        const messages: IBotistMessage[] = [];
+        const messages: IBaseMessage[] = [];
         for (const record of body.entry) {
             for (const message of record.messaging) {
                 if (this.hasMessageText(message)) {
@@ -61,7 +61,7 @@ export class Messenger implements IAdapter {
         });
     }
 
-    private hasMessageText(message: any): message is API.TextMessage | API.ScrapingLinkMessage {
+    private hasMessageText(message: any): message is API.ITextMessage | API.IScrapingLinkMessage {
         return typeof message.message.text !== undefined;
     }
 }

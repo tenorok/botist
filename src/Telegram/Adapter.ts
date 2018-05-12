@@ -4,10 +4,10 @@ import { Request, Response } from 'express';
 import request = require('request-promise-native');
 import {
     IAdapter,
-    IBaseMessage as IBotistMessage,
     IResponse as IBotistResponse,
     IError as IBotistError,
 } from '../Botist';
+import { IBaseMessage } from '../Message';
 
 export class Telegram implements IAdapter {
     private static apiHost: string = 'https://api.telegram.org';
@@ -22,7 +22,7 @@ export class Telegram implements IAdapter {
         return new URL(this.webHookUrl).pathname;
     }
 
-    public onRequest(req: Request, res: Response): IBotistMessage[] {
+    public onRequest(req: Request, res: Response): IBaseMessage[] {
         const body: API._.Update = req.body;
         res.sendStatus(200);
 
