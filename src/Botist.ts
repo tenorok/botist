@@ -4,7 +4,8 @@ import {
     IBaseMessage,
     IMessage,
 } from './Message.t';
-import { IScene } from './MainScene';
+import { IMainScene } from './MainScene';
+import { Scenario } from './Scenario';
 
 export interface IAdapter {
     readonly webHookPath: string;
@@ -14,7 +15,7 @@ export interface IAdapter {
 
 export interface IOptions {
     port: number;
-    scene: new (botist: Botist) => IScene;
+    scene: new (botist: Botist) => IMainScene;
 }
 
 export interface IResponse {
@@ -32,16 +33,16 @@ export class Botist {
     private express: express.Express;
     private adaptersList: IAdapter[] = [];
     private server: http.Server;
-    private mainScene: IScene;
-    private currentScene: IScene;
+    private _mainScene: IMainScene;
+    private currentScene: IMainScene;
 
     constructor(options: IOptions) {
         this.express = express();
         this.express.use(express.json());
         this.server = this.express.listen(options.port);
 
-        this.mainScene = new options.scene(this);
-        this.currentScene = this.mainScene;
+        this._mainScene = new options.scene(this);
+        this.currentScene = this._mainScene;
     }
 
     public destructor() {
@@ -60,14 +61,17 @@ export class Botist {
         });
     }
 
-    public enterMainScene() {
-        this.mainScene.enter();
-        this.scene(this.mainScene);
+    public scenario(scenario: Scenario) {
+        scenario.enter(this);
     }
 
-    public scenario() {}
-
-    public scene(scene: IScene) {
+    public scene(scene: IMainScene) {
+        this.currentScene.leave();
+        scene.enter();
         this.currentScene = scene;
+    }
+
+    public mainScene() {
+        this.scene(this._mainScene);
     }
 }

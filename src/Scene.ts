@@ -25,12 +25,18 @@ export abstract class Scene extends MainScene {
         }, this.ttl * 60 * 1000);
     }
 
-    public exit() {
-        super.exit();
+    public leave() {
+        super.leave();
 
         if (this.enterTimeoutId) {
             clearTimeout(this.enterTimeoutId);
         }
-        this._botist.enterMainScene();
+    }
+
+    /**
+     * Called when this scene is deactivating and main scene will be activate.
+     */
+    protected exit() {
+        this._botist.mainScene();
     }
 }

@@ -6,6 +6,7 @@ import {
     IMessage,
 } from './Message.t';
 import Response from './Response';
+import { Scenario } from './Scenario';
 
 interface IMessageHandlers {
     text: ITextMessageHandler[];
@@ -23,15 +24,15 @@ interface IImageMessageHandler {
     callback: MessageCallback<IImageMessage & IExtendedMessage>;
 }
 
-export interface IScene {
+export interface IMainScene {
     subscribe(): void;
     enter(): void;
-    exit(): void;
+    leave(): void;
     text(text: string | RegExp, callback: MessageCallback<ITextMessage & IExtendedMessage>): void;
     onMessage(adapter: IAdapter, msg: IMessage, startHandlerIndex?: number): void;
 }
 
-export abstract class MainScene implements IScene {
+export abstract class MainScene implements IMainScene {
     private messageHandlers: IMessageHandlers = {
         text: [],
         image: [],
@@ -43,11 +44,15 @@ export abstract class MainScene implements IScene {
 
     public abstract subscribe(): void;
 
-    public enter() {
-        this.botist.scene(this);
-    }
+    /**
+     * Called when scene is activating.
+     */
+    public enter() {}
 
-    public exit() {}
+    /**
+     * Called when scene is deactivating.
+     */
+    public leave() {}
 
     public text(text: string | RegExp, callback: MessageCallback<ITextMessage & IExtendedMessage>): void {
         this.messageHandlers.text.push({
@@ -71,7 +76,7 @@ export abstract class MainScene implements IScene {
         }
     }
 
-    protected scenario() {
-        this.botist.scenario();
+    protected scenario(scenario: Scenario) {
+        this.botist.scenario(scenario);
     }
 }
