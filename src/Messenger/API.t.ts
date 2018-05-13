@@ -3,7 +3,7 @@ export interface IUpdate {
     entry: Array<{
         id: string; // Bot id.
         time: number;
-        messaging: Message[];
+        messaging: IMessage[];
     }>;
 }
 
@@ -22,9 +22,9 @@ export interface IRequestError extends requestPromise.IError {
     };
 }
 
-export type Message = ITextMessage | IAttachmentMessage | IScrapingLinkMessage;
+export type IMessage = ITextMessage | IAttachmentMessage | IScrapingLinkMessage;
 
-interface IBaseMessage {
+export interface IBaseMessage {
     sender: {
         id: string; // User id.
     };
@@ -35,7 +35,7 @@ interface IBaseMessage {
 }
 
 // https://developers.facebook.com/docs/messenger-platform/reference/webhook-events/messages
-interface ITextMessage extends IBaseMessage {
+export interface ITextMessage extends IBaseMessage {
     message: {
         mid: string; // Message id.
         text: string;
@@ -44,7 +44,7 @@ interface ITextMessage extends IBaseMessage {
         };
     };
 }
-interface IAttachmentMessage extends IBaseMessage {
+export interface IAttachmentMessage extends IBaseMessage {
     message: {
         mid: string;
         attachments: Array<{
@@ -55,7 +55,7 @@ interface IAttachmentMessage extends IBaseMessage {
         }>;
     };
 }
-interface IScrapingLinkMessage extends IBaseMessage {
+export interface IScrapingLinkMessage extends IBaseMessage {
     message: {
         mid: string;
         text: string; // URL_SENT_BY_THE_USER

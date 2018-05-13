@@ -4,7 +4,7 @@ import {
     ITextMessage,
     IImageMessage,
     IMessage,
-} from './Message';
+} from './Message.t';
 import Response from './Response';
 
 interface IMessageHandlers {

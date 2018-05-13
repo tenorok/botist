@@ -16,6 +16,7 @@
         "variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore", "allow-pascal-case"],
         "no-namespace": false,
         "no-return-await": true,
+        "type-literal-delimiter": true,
         "semicolon": [true, "always"]
     },
     "rulesDirectory": []

@@ -3,7 +3,7 @@ import express = require('express');
 import {
     IBaseMessage,
     IMessage,
-} from './Message';
+} from './Message.t';
 import { IScene } from './MainScene';
 
 export interface IAdapter {

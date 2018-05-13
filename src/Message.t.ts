@@ -1,4 +1,4 @@
-interface IAbstractMessage {
+export interface IAbstractMessage {
     chatId: string;
     timestamp: number;
 }

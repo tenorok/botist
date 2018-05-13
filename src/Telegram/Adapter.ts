@@ -1,5 +1,5 @@
 import { URL } from 'url';
-import * as API from './API.d';
+import * as API from './API.t';
 import { Request, Response } from 'express';
 import request = require('request-promise-native');
 import {
@@ -7,7 +7,7 @@ import {
     IResponse as IBotistResponse,
     IError as IBotistError,
 } from '../Botist';
-import { IBaseMessage } from '../Message';
+import { IBaseMessage } from '../Message.t';
 
 export class Telegram implements IAdapter {
     private static apiHost: string = 'https://api.telegram.org';
