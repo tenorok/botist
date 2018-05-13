@@ -24,7 +24,7 @@ interface IImageMessageHandler {
     callback: MessageCallback<IImageMessage & IExtendedMessage>;
 }
 
-export interface IMainScene {
+export interface IScene {
     subscribe(): void;
     enter(): void;
     leave(): void;
@@ -32,7 +32,7 @@ export interface IMainScene {
     onMessage(adapter: IAdapter, msg: IMessage, startHandlerIndex?: number): void;
 }
 
-export abstract class MainScene implements IMainScene {
+export abstract class MainScene implements IScene {
     private messageHandlers: IMessageHandlers = {
         text: [],
         image: [],
@@ -76,7 +76,7 @@ export abstract class MainScene implements IMainScene {
         }
     }
 
-    protected scenario(scenario: Scenario) {
-        this.botist.scenario(scenario);
+    protected scenario(scenario: Scenario, next?: () => void) {
+        this.botist.scenario(scenario, next);
     }
 }

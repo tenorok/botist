@@ -4,7 +4,7 @@ import {
     IBaseMessage,
     IMessage,
 } from './Message.t';
-import { IMainScene } from './MainScene';
+import { IScene } from './MainScene';
 import { Scenario } from './Scenario';
 
 export interface IAdapter {
@@ -15,7 +15,7 @@ export interface IAdapter {
 
 export interface IOptions {
     port: number;
-    scene: new (botist: Botist) => IMainScene;
+    scene: new (botist: Botist) => IScene;
 }
 
 export interface IResponse {
@@ -33,8 +33,8 @@ export class Botist {
     private express: express.Express;
     private adaptersList: IAdapter[] = [];
     private server: http.Server;
-    private _mainScene: IMainScene;
-    private currentScene: IMainScene;
+    private _mainScene: IScene;
+    private currentScene: IScene;
 
     constructor(options: IOptions) {
         this.express = express();
@@ -42,6 +42,7 @@ export class Botist {
         this.server = this.express.listen(options.port);
 
         this._mainScene = new options.scene(this);
+        this._mainScene.enter();
         this.currentScene = this._mainScene;
     }
 
@@ -61,11 +62,11 @@ export class Botist {
         });
     }
 
-    public scenario(scenario: Scenario) {
-        scenario.enter(this);
+    public scenario(scenario: Scenario, next?: () => void) {
+        scenario.enter(this, this.currentScene, next);
     }
 
-    public scene(scene: IMainScene) {
+    public scene(scene: IScene) {
         this.currentScene.leave();
         scene.enter();
         this.currentScene = scene;

@@ -17,7 +17,18 @@
         "no-namespace": false,
         "no-return-await": true,
         "type-literal-delimiter": true,
-        "semicolon": [true, "always"]
+        "semicolon": [true, "always"],
+        "whitespace": [
+            true,
+            "check-branch",
+            "check-decl",
+            "check-operator",
+            "check-module",
+            "check-separator",
+            "check-rest-spread",
+            "check-type-operator",
+            "check-preblock"
+        ]
     },
     "rulesDirectory": []
 }
