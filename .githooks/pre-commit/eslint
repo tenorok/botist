@@ -2,7 +2,7 @@
 
 NPM_BIN="./node_modules/.bin"
 
-git_cached_files=$(git diff --cached --name-only --diff-filter=ACMR -- '*.js' | xargs echo)
+git_cached_files=$(git diff --cached --name-only --diff-filter=ACMR -- '*.js' ':(exclude)lib' | xargs echo)
 if [ "$git_cached_files" ]; then
     echo -ne "  \033[0;33m✘$(tput init) ESLint\r"
     $NPM_BIN/eslint $git_cached_files && echo -ne "  \033[0;32m✓$(tput init) ESLint\n" || exit 1

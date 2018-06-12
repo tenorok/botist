@@ -2,7 +2,7 @@
 
 NPM_BIN="./node_modules/.bin"
 
-git_cached_files=$(git diff --cached --name-only --diff-filter=ACMR -- '*.ts' | xargs echo)
+git_cached_files=$(git diff --cached --name-only --diff-filter=ACMR -- '*.ts' ':(exclude)lib' | xargs echo)
 if [ "$git_cached_files" ]; then
     echo -ne "  \033[0;33m✘$(tput init) TSLint\r"
     $NPM_BIN/tslint $git_cached_files && echo -ne "  \033[0;32m✓$(tput init) TSLint\n" || exit 1
