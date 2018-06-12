@@ -6,8 +6,8 @@
     "type": "git",
     "url": "https://gitlab.com/tenorok/botist.git"
   },
-  "main": "dist/index.js",
-  "typings": "dist/index.d.ts",
+  "main": "lib/index.js",
+  "typings": "lib/index.d.ts",
   "scripts": {
     "test": "NODE_ENV=testing mocha --require ts-node/register test/"
   },
