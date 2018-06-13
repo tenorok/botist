@@ -8,13 +8,27 @@
         "quotemark": [true, "single"],
         "object-literal-sort-keys": false,
         "interface-name": [true, "always-prefix"],
+        "no-empty": [false],
         "no-empty-interface": [false],
         "max-line-length": [true, 150],
         "no-console": false,
         "ordered-imports": false,
         "variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore", "allow-pascal-case"],
         "no-namespace": false,
-        "no-return-await": true
+        "no-return-await": true,
+        "type-literal-delimiter": true,
+        "semicolon": [true, "always"],
+        "whitespace": [
+            true,
+            "check-branch",
+            "check-decl",
+            "check-operator",
+            "check-module",
+            "check-separator",
+            "check-rest-spread",
+            "check-type-operator",
+            "check-preblock"
+        ]
     },
     "rulesDirectory": []
 }

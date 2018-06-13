@@ -21,6 +21,7 @@
             "objectsInObjects": false
         }],
         "comma-spacing": ["error", { "before": false, "after": true }],
+        "no-console": ["off"],
         "ascii/valid-name": "error"
     },
     "overrides": [
