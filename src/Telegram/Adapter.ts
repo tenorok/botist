@@ -11,6 +11,9 @@ import { IBaseMessage } from '../Message.t';
 
 export class Telegram implements IAdapter {
     private static apiHost: string = 'https://api.telegram.org';
+
+    public name: string = Telegram.name;
+
     private apiUrl: string;
 
     constructor(token: string, private webHookUrl: string) {
@@ -18,7 +21,7 @@ export class Telegram implements IAdapter {
         this.setWebHook();
     }
 
-    get webHookPath(): string {
+    public get webHookPath(): string {
         return new URL(this.webHookUrl).pathname;
     }
 

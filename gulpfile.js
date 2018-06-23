@@ -67,13 +67,15 @@ gulp.task('publish', () => {
 });
 
 async function publish(tag) {
+    signale.await('Publishing to NPM');
     await execFile('npm', ['publish']);
     signale.info('Published to NPM');
 
     await execFile('git', ['checkout', 'master']);
     await execFile('git', ['merge', 'dev', '--no-ff', '-m', `v${tag}`]);
+    signale.await('Publishing to github');
     await execFile('git', ['push', 'origin', 'master', 'dev', `refs/tags/v${tag}`]);
-    signale.info(`Published a master and dev branches along with tag v${tag} on github`);
+    signale.info(`Published a master and dev branches along with tag v${tag} to github`);
 
     await execFile('rm', ['-rf', 'lib']);
     signale.info('Directory lib removed');
@@ -81,7 +83,11 @@ async function publish(tag) {
     await execFile('git', ['branch', '-D', `release/${tag}`]);
     signale.info(`Branch release/${tag} removed`);
 
-    await run(gulp.src('CHANGELOG.md').pipe(gap.prependText('## [Unreleased]', '\n\n')));
+    await run(
+        gulp.src('CHANGELOG.md')
+            .pipe(gap.prependText('## [Unreleased]', '\n\n'))
+            .pipe(gulp.dest('.'))
+    );
     signale.success('Release published!');
     signale.star('Please copy changelog to release description:');
     signale.star(chalk.yellow.underline(`https://github.com/tenorok/botist/releases/tag/v${tag}`));

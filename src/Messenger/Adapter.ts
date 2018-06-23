@@ -11,6 +11,8 @@ import { IBaseMessage } from '../Message.t';
 export class Messenger implements IAdapter {
     private static apiUrl: string = 'https://graph.facebook.com/v3.0/me/messages';
 
+    public name: string = Messenger.name;
+
     constructor(private token: string, public webHookPath: string) {}
 
     public onRequest(req: Request, res: Response): IBaseMessage[] {
