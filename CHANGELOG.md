@@ -1,4 +1,4 @@
-## [Unreleased]
+## 0.1.1 (June 23, 2018)
 - Add method `getAdapter(name: string): IAdapter | null` to `Botist` class.
 
   The new method allows to obtain specified adapter to send message through it. This feature useful when instance of Botist was created in other module. For example:
