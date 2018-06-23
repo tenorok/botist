@@ -8,6 +8,7 @@ import { IScene } from './MainScene';
 import { Scenario } from './Scenario';
 
 export interface IAdapter {
+    readonly name: string;
     readonly webHookPath: string;
     onRequest(req: express.Request, res: express.Response): IBaseMessage[];
     sendText(id: string, text: string): Promise<IResponse | IError>;
@@ -60,6 +61,16 @@ export class Botist {
                 this.currentScene.onMessage(adapter, msg);
             }
         });
+    }
+
+    public getAdapter(name: string): IAdapter | null {
+        for (const adapter of this.adaptersList) {
+            if (adapter.name === name) {
+                return adapter;
+            }
+        }
+
+        return null;
     }
 
     public scenario(scenario: Scenario, next?: () => void) {
