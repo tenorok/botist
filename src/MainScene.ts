@@ -5,8 +5,7 @@ import {
     IImageMessage,
     IMessage,
 } from './Message.t';
-import Response from './Response';
-import { Scenario } from './Scenario';
+import { Response } from './Response';
 
 interface IMessageHandlers {
     text: ITextMessageHandler[];
@@ -26,8 +25,8 @@ interface IImageMessageHandler {
 
 export interface IScene {
     subscribe(): void;
-    enter(): void;
-    leave(): void;
+    enter(res: Response): void;
+    leave(res: Response): void;
     text(text: string | RegExp, callback: MessageCallback<ITextMessage & IExtendedMessage>): void;
     onMessage(adapter: IAdapter, msg: IMessage, startHandlerIndex?: number): void;
 }
@@ -47,12 +46,12 @@ export abstract class MainScene implements IScene {
     /**
      * Called when scene is activating.
      */
-    public enter() {}
+    public enter(_: Response) {}
 
     /**
      * Called when scene is deactivating.
      */
-    public leave() {}
+    public leave(_: Response) {}
 
     public text(text: string | RegExp, callback: MessageCallback<ITextMessage & IExtendedMessage>): void {
         this.messageHandlers.text.push({
@@ -68,15 +67,11 @@ export abstract class MainScene implements IScene {
                 continue;
             }
 
-            const res = new Response(msg.chatId, adapter);
+            const res = new Response(this.botist, msg.chatId, adapter);
             handler.callback.call(null, msg, res, () => {
                 this.onMessage(adapter, msg, i + 1);
             });
             break;
         }
-    }
-
-    protected scenario(scenario: Scenario, next?: () => void) {
-        this.botist.scenario(scenario, next);
     }
 }

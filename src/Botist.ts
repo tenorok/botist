@@ -6,6 +6,7 @@ import {
 } from './Message.t';
 import { IScene } from './MainScene';
 import { Scenario } from './Scenario';
+import { Response } from './Response';
 
 export interface IAdapter {
     readonly name: string;
@@ -30,12 +31,17 @@ export interface IError {
     statusCode: number;
 }
 
+export interface IFrom {
+    name: string;
+    chatId: string;
+}
+
 export class Botist {
     private express: express.Express;
     private adaptersList: IAdapter[] = [];
     private server: http.Server;
     private _mainScene: IScene;
-    private currentScene: IScene;
+    private currentScene: Map<string, IScene> = new Map();
 
     constructor(options: IOptions) {
         this.express = express();
@@ -43,8 +49,6 @@ export class Botist {
         this.server = this.express.listen(options.port);
 
         this._mainScene = new options.scene(this);
-        this._mainScene.enter();
-        this.currentScene = this._mainScene;
     }
 
     public destructor() {
@@ -58,7 +62,7 @@ export class Botist {
             for (const baseMsg of messages) {
                 const msg: IMessage = baseMsg as IMessage;
                 msg.name = adapter.constructor.name;
-                this.currentScene.onMessage(adapter, msg);
+                this.getCurrentScene(msg).onMessage(adapter, msg);
             }
         });
     }
@@ -73,17 +77,32 @@ export class Botist {
         return null;
     }
 
-    public scenario(scenario: Scenario, next?: () => void) {
-        scenario.enter(this, this.currentScene, next);
+    public scenario(from: IFrom, res: Response, scenario: Scenario, next?: () => void) {
+        scenario.enter(this, from, res, this.getCurrentScene(from), next);
     }
 
-    public scene(scene: IScene) {
-        this.currentScene.leave();
-        scene.enter();
-        this.currentScene = scene;
+    public scene(from: IFrom, res: Response, scene: IScene) {
+        this.getCurrentScene(from).leave(res);
+        scene.enter(res);
+        this.currentScene.set(this.getSceneKey(from), scene);
     }
 
-    public mainScene() {
-        this.scene(this._mainScene);
+    public mainScene(from: IFrom, res: Response) {
+        this.scene(from, res, this._mainScene);
+    }
+
+    private getSceneKey(from: IFrom): string {
+        return from.name + from.chatId;
+    }
+
+    private getCurrentScene(from: IFrom): IScene {
+        const key = this.getSceneKey(from);
+        const currentScene = this.currentScene.get(key);
+        if (currentScene) {
+            return currentScene;
+        }
+
+        this.currentScene.set(key, this._mainScene);
+        return this._mainScene;
     }
 }
