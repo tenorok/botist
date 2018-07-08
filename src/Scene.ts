@@ -1,5 +1,15 @@
 import { Botist } from './Botist';
 import { MainScene } from './MainScene';
+import { Response } from './Response';
+
+export interface ISceneConstructor {
+    new (
+        botist: Botist,
+        back: () => void,
+        next: () => void,
+        exit: () => void,
+    ): Scene;
+}
 
 export abstract class Scene extends MainScene {
     /**
@@ -10,33 +20,27 @@ export abstract class Scene extends MainScene {
     private enterTimeoutId?: NodeJS.Timer;
 
     constructor(
-        private _botist: Botist,
+        botist: Botist,
         protected back: () => void,
         protected next: () => void,
+        protected exit: () => void,
     ) {
-        super(_botist);
+        super(botist);
     }
 
-    public enter() {
-        super.enter();
+    public enter(res: Response) {
+        super.enter(res);
 
         this.enterTimeoutId = setTimeout(() => {
             this.exit();
         }, this.ttl * 60 * 1000);
     }
 
-    public leave() {
-        super.leave();
+    public leave(res: Response) {
+        super.leave(res);
 
         if (this.enterTimeoutId) {
             clearTimeout(this.enterTimeoutId);
         }
-    }
-
-    /**
-     * Called when this scene is deactivating and main scene will be activate.
-     */
-    protected exit() {
-        this._botist.mainScene();
     }
 }

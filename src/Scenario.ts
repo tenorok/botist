@@ -1,40 +1,47 @@
-import { Botist } from './Botist';
+import {
+    Botist,
+    IFrom,
+} from './Botist';
 import { IScene } from './MainScene';
-
-export type DerivedScene = new (
-    botist: Botist,
-    back: () => void,
-    next: () => void,
-) => IScene;
+import { ISceneConstructor } from './Scene';
+import { Response } from './Response';
 
 export class Scenario {
     private scenesInstances: IScene[] = [];
 
-    constructor(private scenes: DerivedScene[]) {}
+    constructor(private scenes: ISceneConstructor[]) {}
 
-    public enter(botist: Botist, previousScene: IScene, next?: () => void) {
+    public enter(botist: Botist, from: IFrom, res: Response, previousScene: IScene, next?: () => void) {
         this.scenesInstances = []; // Create instances each time because `next` can be other.
         this.scenesInstances.push(previousScene);
-        const firstScene = this.createScene(botist, next);
+        const firstScene = this.createScene(botist, from, res, next);
         if (firstScene) {
-            botist.scene(firstScene);
+            botist.scene(from, res, firstScene);
         }
     }
 
-    private createScene(botist: Botist, next?: () => void, sceneIndex: number = 0): IScene | null {
+    private createScene(
+        botist: Botist,
+        from: IFrom,
+        res: Response,
+        next?: () => void,
+        sceneIndex: number = 0,
+    ): IScene | null {
         if (typeof this.scenes[sceneIndex] === 'undefined') {
             return null;
         }
 
         const scene = new this.scenes[sceneIndex](botist, () => {
-            botist.scene(this.scenesInstances[sceneIndex]);
+            botist.scene(from, res, this.scenesInstances[sceneIndex]);
         }, () => {
-            const nextScene = this.createScene(botist, next, sceneIndex + 1);
+            const nextScene = this.createScene(botist, from, res, next, sceneIndex + 1);
             if (nextScene) {
-                botist.scene(nextScene);
+                botist.scene(from, res, nextScene);
             } else if (typeof next === 'function') {
                 next();
             }
+        }, () => {
+            botist.mainScene(from, res);
         });
 
         this.scenesInstances.push(scene);

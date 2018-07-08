@@ -1,7 +1,7 @@
 {
   "name": "botist",
   "description": "Single interface for different bot platforms",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/tenorok/botist.git"
@@ -40,7 +40,7 @@
     "signale": "^1.2.0",
     "ts-node": "^6.0.2",
     "tslint": "^5.9.1",
-    "typescript": "^2.8.3",
+    "typescript": "^2.9.2",
     "yargs": "^11.0.0"
   }
 }
