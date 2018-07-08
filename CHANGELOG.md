@@ -5,6 +5,10 @@
 - Scene methods `enter(res: Response)` and `leave(res: Response)` now takes parameter for possibility to reply.
 - Added method `scenario(scenario: Scenario, next?: () => void)` to Response to respond a specific user.
 
+### Changed
+- Strict resolving string text of route.
+- Now `sendText()` method do nothing and returns object with empty `messageId` when text is missing.
+
 ### Removed
 - Removed method `scenario()` from Scene class.
 

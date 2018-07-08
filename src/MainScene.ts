@@ -63,8 +63,14 @@ export abstract class MainScene implements IScene {
     public onMessage(adapter: IAdapter, msg: IMessage, startHandlerIndex: number = 0): void {
         for (let i = startHandlerIndex; i < this.messageHandlers[msg.type].length; i++) {
             const handler = this.messageHandlers[msg.type][i];
-            if (msg.type === 'text' && !msg.text.match((handler as ITextMessageHandler).text)) {
-                continue;
+            if (msg.type === 'text') {
+                const handlerText = (handler as ITextMessageHandler).text;
+                if (
+                    typeof handlerText === 'string' && msg.text !== handlerText ||
+                    handlerText instanceof RegExp && !msg.text.match(handlerText)
+                ) {
+                    continue;
+                }
             }
 
             const res = new Response(this.botist, msg.chatId, adapter);

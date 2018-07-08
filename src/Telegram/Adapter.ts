@@ -44,6 +44,10 @@ export class Telegram implements IAdapter {
     }
 
     public sendText(id: string, text: string): Promise<IBotistResponse | IBotistError> {
+        if (!text) {
+            return Promise.resolve({ messageId: '' });
+        }
+
         return request.post({
             url: this.apiUrl + 'sendMessage',
             json: {
