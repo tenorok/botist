@@ -1,4 +1,4 @@
-## [Unreleased]
+## 0.2.0 (July 8, 2018)
 
 ### Added
 - Support multiple users at one time. Now current users scenes are not affects each other.
