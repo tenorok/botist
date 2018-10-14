@@ -1,5 +1,9 @@
 import * as http from 'http';
 import express = require('express');
+
+import createDebug = require('debug');
+const debugAdapter = createDebug('botist:adapter');
+
 import {
     IBaseMessage,
     IMessage,
@@ -56,9 +60,12 @@ export class Botist {
     }
 
     public adapter(adapter: IAdapter): void {
+        debugAdapter('new %s with webhook %s', adapter.name, adapter.webHookPath);
         this.adaptersList.push(adapter);
+
         this.express.post(adapter.webHookPath, (req, res) => {
             const messages = adapter.onRequest(req, res);
+            debugAdapter('%s requested %O', adapter.name, messages);
             for (const baseMsg of messages) {
                 const msg: IMessage = baseMsg as IMessage;
                 msg.name = adapter.constructor.name;
