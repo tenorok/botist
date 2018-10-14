@@ -1,4 +1,4 @@
-## [Unreleased]
+## 0.2.1 (October 14, 2018)
 
 ### Added
 - Added debug-messages on create adapter with webhook and request adapter webhook.
