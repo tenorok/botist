@@ -1,3 +1,9 @@
+## 0.2.1 (October 14, 2018)
+
+### Added
+- Added debug-messages on create adapter with webhook and request adapter webhook.
+- Telegram/Adapter wraps parse of error of setting webhook.
+
 ## 0.2.0 (July 8, 2018)
 
 ### Added
