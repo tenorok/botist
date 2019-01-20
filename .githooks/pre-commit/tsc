@@ -1,0 +1,6 @@
+#!/bin/bash
+
+NPM_BIN="./node_modules/.bin"
+
+echo -ne "  \033[0;33m✘$(tput init) TSC\r"
+$NPM_BIN/tsc --noEmit && echo -ne "  \033[0;32m✓$(tput init) TSC\n" || exit 1

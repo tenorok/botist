@@ -5,7 +5,6 @@ import request = require('request-promise-native');
 import {
     IAdapter,
     IResponse as IBotistResponse,
-    IError as IBotistError,
 } from '../Botist';
 import { IBaseMessage } from '../Message.t';
 
@@ -43,7 +42,7 @@ export class Telegram implements IAdapter {
         return [];
     }
 
-    public sendText(id: string, text: string): Promise<IBotistResponse | IBotistError> {
+    public sendText(id: string, text: string): Promise<IBotistResponse> {
         if (!text) {
             return Promise.resolve({ messageId: '' });
         }
@@ -53,6 +52,7 @@ export class Telegram implements IAdapter {
             json: {
                 chat_id: id,
                 text,
+                parse_mode: 'Markdown',
             },
         }).then((res: API.IResult) => {
             return {
@@ -75,21 +75,17 @@ export class Telegram implements IAdapter {
                 url: this.webHookUrl,
             },
         }).catch((err: API.ISetWebHookRequestError) => {
-            let error: API.IError;
             try {
-                error = JSON.parse(err.error);
+                const error: API.IError = JSON.parse(err.error);
+                console.error(`${Telegram.name}: Failed to set webhook.`, {
+                    type: err.name,
+                    code: error.error_code,
+                    message: error.description,
+                    statusCode: err.statusCode,
+                });
             } catch (errParse) {
-                console.error(`${Telegram.name}: Failed to parse err.error: ${errParse}`);
-                console.error(`${Telegram.name}: Failed to set webhook ${err.error}`);
-                return;
+                console.error(`${Telegram.name}: Failed to set webhook`, err.error);
             }
-
-            console.error(`${Telegram.name}: Failed to set webhook`, {
-                type: err.name,
-                code: error.error_code,
-                message: error.description,
-                statusCode: err.statusCode,
-            });
         });
     }
 }

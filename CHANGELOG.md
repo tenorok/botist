@@ -1,3 +1,9 @@
+## 0.2.2 (January 20, 2019)
+
+### Added
+- Exported types `IRequestResponse`, `IRequestSuccess`, `IRequestError`, `IMessage`, `ITextMessage`, `IImageMessage`.
+- Telegram/Adapter sendText() use Markdown parse mode.
+
 ## 0.2.1 (October 14, 2018)
 
 ### Added

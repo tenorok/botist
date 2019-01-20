@@ -1,4 +1,14 @@
-export { Botist } from './Botist';
+export {
+    Botist,
+    IResponse as IRequestResponse,
+    ISuccess as IRequestSuccess,
+    IError as IRequestError,
+} from './Botist';
+export {
+    IMessage,
+    ITextMessage,
+    IImageMessage,
+} from './Message.t';
 export { MainScene } from './MainScene';
 export { Scene } from './Scene';
 export { Scenario } from './Scenario';

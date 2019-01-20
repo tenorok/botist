@@ -4,7 +4,6 @@ import request = require('request-promise-native');
 import {
     IAdapter,
     IResponse as IBotistResponse,
-    IError as IBotistError,
 } from '../Botist';
 import { IBaseMessage } from '../Message.t';
 
@@ -36,7 +35,7 @@ export class Messenger implements IAdapter {
         return messages;
     }
 
-    public sendText(id: string, text: string): Promise<IBotistResponse | IBotistError> {
+    public sendText(id: string, text: string): Promise<IBotistResponse> {
         if (!text) {
             return Promise.resolve({ messageId: '' });
         }
