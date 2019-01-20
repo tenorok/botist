@@ -2,7 +2,6 @@ import {
     Botist,
     IAdapter,
     IResponse as IBotistResponse,
-    IError as IBotistError,
     IFrom,
 } from './Botist';
 import { Scenario } from './Scenario';
@@ -21,7 +20,7 @@ export class Response {
         };
     }
 
-    public sendText(text: string): Promise<IBotistResponse | IBotistError> {
+    public sendText(text: string): Promise<IBotistResponse> {
         return this.adapter.sendText(this.id, text);
     }
 

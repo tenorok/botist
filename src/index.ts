@@ -1,6 +1,7 @@
 export {
     Botist,
     IResponse as IRequestResponse,
+    ISuccess as IRequestSuccess,
     IError as IRequestError,
 } from './Botist';
 export {

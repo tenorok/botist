@@ -12,19 +12,7 @@ import { IScene } from './MainScene';
 import { Scenario } from './Scenario';
 import { Response } from './Response';
 
-export interface IAdapter {
-    readonly name: string;
-    readonly webHookPath: string;
-    onRequest(req: express.Request, res: express.Response): IBaseMessage[];
-    sendText(id: string, text: string): Promise<IResponse | IError>;
-}
-
-export interface IOptions {
-    port: number;
-    scene: new (botist: Botist) => IScene;
-}
-
-export interface IResponse {
+export interface ISuccess {
     messageId: string;
 }
 
@@ -33,6 +21,20 @@ export interface IError {
     code: number;
     message: string;
     statusCode: number;
+}
+
+export type IResponse = ISuccess | IError;
+
+export interface IAdapter {
+    readonly name: string;
+    readonly webHookPath: string;
+    onRequest(req: express.Request, res: express.Response): IBaseMessage[];
+    sendText(id: string, text: string): Promise<IResponse>;
+}
+
+export interface IOptions {
+    port: number;
+    scene: new (botist: Botist) => IScene;
 }
 
 export interface IFrom {
