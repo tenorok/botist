@@ -1,4 +1,4 @@
-## [Unreleased]
+## 0.2.2 (January 20, 2019)
 
 ### Added
 - Exported types `IRequestResponse`, `IRequestSuccess`, `IRequestError`, `IMessage`, `ITextMessage`, `IImageMessage`.
