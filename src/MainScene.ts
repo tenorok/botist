@@ -1,6 +1,5 @@
 import { Botist, IAdapter } from './Botist';
 import {
-    IExtendedMessage,
     ITextMessage,
     IImageMessage,
     IMessage,
@@ -16,18 +15,18 @@ export type MessageCallback<M> = (msg: M, res: Response, next: () => void) => vo
 
 interface ITextMessageHandler {
     text: string | RegExp;
-    callback: MessageCallback<ITextMessage & IExtendedMessage>;
+    callback: MessageCallback<ITextMessage>;
 }
 
 interface IImageMessageHandler {
-    callback: MessageCallback<IImageMessage & IExtendedMessage>;
+    callback: MessageCallback<IImageMessage>;
 }
 
 export interface IScene {
     subscribe(): void;
     enter(res: Response): void;
     leave(res: Response): void;
-    text(text: string | RegExp, callback: MessageCallback<ITextMessage & IExtendedMessage>): void;
+    text(text: string | RegExp, callback: MessageCallback<ITextMessage>): void;
     onMessage(adapter: IAdapter, msg: IMessage, startHandlerIndex?: number): void;
 }
 
@@ -53,7 +52,7 @@ export abstract class MainScene implements IScene {
      */
     public leave(_: Response) {}
 
-    public text(text: string | RegExp, callback: MessageCallback<ITextMessage & IExtendedMessage>): void {
+    public text(text: string | RegExp, callback: MessageCallback<ITextMessage>): void {
         this.messageHandlers.text.push({
             text,
             callback,

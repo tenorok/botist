@@ -21,6 +21,7 @@ gulp.task('test', () => {
 });
 
 // git checkout dev
+// git stash
 // gulp release --tag x.y.z
 gulp.task('release', ['test', 'changelog'], async () => {
     const tag = argv.tag;
