@@ -8,6 +8,17 @@ import {
 } from '../Botist';
 import { IBaseMessage } from '../Message.t';
 
+interface ISendTextTelegramOptions extends API._.SendMessageOptions {
+    chat_id: string;
+    text: string;
+}
+
+interface ISendTextOptions {
+    id: string;
+    text: string;
+    parseMode?: 'Markdown';
+}
+
 export class Telegram implements IAdapter {
     private static apiHost: string = 'https://api.telegram.org';
 
@@ -43,17 +54,37 @@ export class Telegram implements IAdapter {
     }
 
     public sendText(id: string, text: string): Promise<IBotistResponse> {
-        if (!text) {
+        return this._sendText({
+            id,
+            text,
+        });
+    }
+
+    public sendMarkdown(id: string, markdown: string): Promise<IBotistResponse> {
+        return this._sendText({
+            id,
+            text: markdown,
+            parseMode: 'Markdown',
+        });
+    }
+
+    private _sendText(options: ISendTextOptions): Promise<IBotistResponse> {
+        if (!options.text) {
             return Promise.resolve({ messageId: '' });
+        }
+
+        const json: ISendTextTelegramOptions = {
+            chat_id: options.id,
+            text: options.text,
+        };
+
+        if (options.parseMode) {
+            json.parse_mode = options.parseMode;
         }
 
         return request.post({
             url: this.apiUrl + 'sendMessage',
-            json: {
-                chat_id: id,
-                text,
-                parse_mode: 'Markdown',
-            },
+            json,
         }).then((res: API.IResult) => {
             return {
                 messageId: String(res.result.message_id),

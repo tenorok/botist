@@ -24,6 +24,10 @@ export class Response {
         return this.adapter.sendText(this.id, text);
     }
 
+    public sendMarkdown(markdown: string): Promise<IBotistResponse> {
+        return this.adapter.sendMarkdown(this.id, markdown);
+    }
+
     /**
      * Start a scenario.
      */

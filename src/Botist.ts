@@ -30,6 +30,7 @@ export interface IAdapter {
     readonly webHookPath: string;
     onRequest(req: express.Request, res: express.Response): IBaseMessage[];
     sendText(id: string, text: string): Promise<IResponse>;
+    sendMarkdown(id: string, markdown: string): Promise<IResponse>;
 }
 
 export interface IOptions {
