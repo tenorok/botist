@@ -1,4 +1,4 @@
-## [Unreleased]
+## 0.3.0 (February 3, 2019)
 
 ### Added
 - To methods `sendText()` and `sendMarkdown()` added options, where can be used `disableWebPagePreview`.
