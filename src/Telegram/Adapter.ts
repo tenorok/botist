@@ -4,9 +4,21 @@ import { Request, Response } from 'express';
 import request = require('request-promise-native');
 import {
     IAdapter,
+    ITextMessageOptions,
     IResponse as IBotistResponse,
 } from '../Botist';
 import { IBaseMessage } from '../Message.t';
+
+interface ISendTextTelegramOptions extends API._.SendMessageOptions {
+    chat_id: string;
+    text: string;
+}
+
+interface ISendTextParams extends ITextMessageOptions {
+    id: string;
+    text: string;
+    parseMode?: 'Markdown';
+}
 
 export class Telegram implements IAdapter {
     private static apiHost: string = 'https://api.telegram.org';
@@ -42,18 +54,44 @@ export class Telegram implements IAdapter {
         return [];
     }
 
-    public sendText(id: string, text: string): Promise<IBotistResponse> {
-        if (!text) {
+    public sendText(id: string, text: string, options: ITextMessageOptions = {}): Promise<IBotistResponse> {
+        return this._sendText({
+            id,
+            text,
+            ...options,
+        });
+    }
+
+    public sendMarkdown(id: string, markdown: string, options: ITextMessageOptions = {}): Promise<IBotistResponse> {
+        return this._sendText({
+            id,
+            text: markdown,
+            parseMode: 'Markdown',
+            ...options,
+        });
+    }
+
+    private _sendText(params: ISendTextParams): Promise<IBotistResponse> {
+        if (!params.text) {
             return Promise.resolve({ messageId: '' });
+        }
+
+        const json: ISendTextTelegramOptions = {
+            chat_id: params.id,
+            text: params.text,
+        };
+
+        if (params.parseMode !== undefined) {
+            json.parse_mode = params.parseMode;
+        }
+
+        if (params.disableWebPagePreview !== undefined) {
+            json.disable_web_page_preview = params.disableWebPagePreview;
         }
 
         return request.post({
             url: this.apiUrl + 'sendMessage',
-            json: {
-                chat_id: id,
-                text,
-                parse_mode: 'Markdown',
-            },
+            json,
         }).then((res: API.IResult) => {
             return {
                 messageId: String(res.result.message_id),

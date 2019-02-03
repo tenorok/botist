@@ -25,6 +25,7 @@ gulp.task('test', () => {
 // gulp release --tag x.y.z
 gulp.task('release', ['test', 'changelog'], async () => {
     const tag = argv.tag;
+    await execFile('git', ['checkout', 'dev']);
     await execFile('npm', ['version', '--no-git-tag-version', tag]);
     await execFile('git', ['add', 'CHANGELOG.md', 'package.json', 'package-lock.json']);
     await execFile('git', ['commit', '-m', `v${tag}`]);
@@ -84,6 +85,7 @@ async function publish(tag) {
     await execFile('git', ['branch', '-D', `release/${tag}`]);
     signale.info(`Branch release/${tag} removed`);
 
+    await execFile('git', ['checkout', 'dev']);
     await run(
         gulp.src('CHANGELOG.md')
             .pipe(gap.prependText('## [Unreleased]', '\n\n'))

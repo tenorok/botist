@@ -1,8 +1,17 @@
+## 0.3.0 (February 3, 2019)
+
+### Added
+- To methods `sendText()` and `sendMarkdown()` added options, where can be used `disableWebPagePreview`.
+
+### Changed
+- Method `sendText()` now use default mode.
+- Added method `sendMarkdown()` which use markdown mode.
+
 ## 0.2.2 (January 20, 2019)
 
 ### Added
 - Exported types `IRequestResponse`, `IRequestSuccess`, `IRequestError`, `IMessage`, `ITextMessage`, `IImageMessage`.
-- Telegram/Adapter sendText() use Markdown parse mode.
+- Telegram/Adapter `sendText()` use markdown parse mode.
 
 ## 0.2.1 (October 14, 2018)
 

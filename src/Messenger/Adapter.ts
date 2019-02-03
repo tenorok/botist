@@ -7,6 +7,11 @@ import {
 } from '../Botist';
 import { IBaseMessage } from '../Message.t';
 
+interface ISendTextParams {
+    id: string;
+    text: string;
+}
+
 export class Messenger implements IAdapter {
     private static apiUrl: string = 'https://graph.facebook.com/v3.0/me/messages';
 
@@ -36,7 +41,25 @@ export class Messenger implements IAdapter {
     }
 
     public sendText(id: string, text: string): Promise<IBotistResponse> {
-        if (!text) {
+        return this._sendText({
+            id,
+            text,
+        });
+    }
+
+    /**
+     * Messenger doesn't support markdown.
+     * https://docs.botframework.com/en-us/channel-inspector/channels/Facebook/#navtitle
+     */
+    public sendMarkdown(id: string, markdown: string): Promise<IBotistResponse> {
+        return this._sendText({
+            id,
+            text: markdown,
+        });
+    }
+
+    private _sendText(params: ISendTextParams): Promise<IBotistResponse> {
+        if (!params.text) {
             return Promise.resolve({ messageId: '' });
         }
 
@@ -46,10 +69,10 @@ export class Messenger implements IAdapter {
             json: {
                 messaging_type: 'RESPONSE',
                 recipient: {
-                    id,
+                    id: params.id,
                 },
                 message: {
-                    text,
+                    text: params.text,
                 },
             },
         }).then((res: API.IResult) => {

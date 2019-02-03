@@ -3,6 +3,7 @@ import {
     IAdapter,
     IResponse as IBotistResponse,
     IFrom,
+    ITextMessageOptions,
 } from './Botist';
 import { Scenario } from './Scenario';
 
@@ -20,8 +21,12 @@ export class Response {
         };
     }
 
-    public sendText(text: string): Promise<IBotistResponse> {
-        return this.adapter.sendText(this.id, text);
+    public sendText(text: string, options?: ITextMessageOptions): Promise<IBotistResponse> {
+        return this.adapter.sendText(this.id, text, options);
+    }
+
+    public sendMarkdown(markdown: string, options?: ITextMessageOptions): Promise<IBotistResponse> {
+        return this.adapter.sendMarkdown(this.id, markdown, options);
     }
 
     /**
