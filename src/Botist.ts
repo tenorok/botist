@@ -25,12 +25,16 @@ export interface IError {
 
 export type IResponse = ISuccess | IError;
 
+export interface ITextMessageOptions {
+    disableWebPagePreview?: boolean;
+}
+
 export interface IAdapter {
     readonly name: string;
     readonly webHookPath: string;
     onRequest(req: express.Request, res: express.Response): IBaseMessage[];
-    sendText(id: string, text: string): Promise<IResponse>;
-    sendMarkdown(id: string, markdown: string): Promise<IResponse>;
+    sendText(id: string, text: string, options?: ITextMessageOptions): Promise<IResponse>;
+    sendMarkdown(id: string, markdown: string, options?: ITextMessageOptions): Promise<IResponse>;
 }
 
 export interface IOptions {

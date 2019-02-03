@@ -7,7 +7,7 @@ import {
 } from '../Botist';
 import { IBaseMessage } from '../Message.t';
 
-interface ISendTextOptions {
+interface ISendTextParams {
     id: string;
     text: string;
 }
@@ -58,8 +58,8 @@ export class Messenger implements IAdapter {
         });
     }
 
-    private _sendText(options: ISendTextOptions): Promise<IBotistResponse> {
-        if (!options.text) {
+    private _sendText(params: ISendTextParams): Promise<IBotistResponse> {
+        if (!params.text) {
             return Promise.resolve({ messageId: '' });
         }
 
@@ -69,10 +69,10 @@ export class Messenger implements IAdapter {
             json: {
                 messaging_type: 'RESPONSE',
                 recipient: {
-                    id: options.id,
+                    id: params.id,
                 },
                 message: {
-                    text: options.text,
+                    text: params.text,
                 },
             },
         }).then((res: API.IResult) => {

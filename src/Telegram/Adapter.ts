@@ -4,6 +4,7 @@ import { Request, Response } from 'express';
 import request = require('request-promise-native');
 import {
     IAdapter,
+    ITextMessageOptions,
     IResponse as IBotistResponse,
 } from '../Botist';
 import { IBaseMessage } from '../Message.t';
@@ -13,7 +14,7 @@ interface ISendTextTelegramOptions extends API._.SendMessageOptions {
     text: string;
 }
 
-interface ISendTextOptions {
+interface ISendTextParams extends ITextMessageOptions {
     id: string;
     text: string;
     parseMode?: 'Markdown';
@@ -53,33 +54,39 @@ export class Telegram implements IAdapter {
         return [];
     }
 
-    public sendText(id: string, text: string): Promise<IBotistResponse> {
+    public sendText(id: string, text: string, options: ITextMessageOptions = {}): Promise<IBotistResponse> {
         return this._sendText({
             id,
             text,
+            ...options,
         });
     }
 
-    public sendMarkdown(id: string, markdown: string): Promise<IBotistResponse> {
+    public sendMarkdown(id: string, markdown: string, options: ITextMessageOptions = {}): Promise<IBotistResponse> {
         return this._sendText({
             id,
             text: markdown,
             parseMode: 'Markdown',
+            ...options,
         });
     }
 
-    private _sendText(options: ISendTextOptions): Promise<IBotistResponse> {
-        if (!options.text) {
+    private _sendText(params: ISendTextParams): Promise<IBotistResponse> {
+        if (!params.text) {
             return Promise.resolve({ messageId: '' });
         }
 
         const json: ISendTextTelegramOptions = {
-            chat_id: options.id,
-            text: options.text,
+            chat_id: params.id,
+            text: params.text,
         };
 
-        if (options.parseMode) {
-            json.parse_mode = options.parseMode;
+        if (params.parseMode !== undefined) {
+            json.parse_mode = params.parseMode;
+        }
+
+        if (params.disableWebPagePreview !== undefined) {
+            json.disable_web_page_preview = params.disableWebPagePreview;
         }
 
         return request.post({

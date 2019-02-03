@@ -1,5 +1,8 @@
 ## [Unreleased]
 
+### Added
+- To methods `sendText()` and `sendMarkdown()` added options, where can be used `disableWebPagePreview`.
+
 ### Changed
 - Method `sendText()` now use default mode.
 - Added method `sendMarkdown()` which use markdown mode.
