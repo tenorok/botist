@@ -98,6 +98,7 @@ export class Telegram implements IAdapter {
             };
         }).catch((err: API.IRequestError) => {
             return Promise.reject({
+                adapter: Telegram.name,
                 type: err.name,
                 code: err.error.error_code,
                 message: err.error.description,

@@ -1,3 +1,8 @@
+## [Unreleased]
+
+### Added
+- Created `adapter` property with name of adapter to the error object of `sendText()` and `sendMarkdown()` methods.
+
 ## 0.3.0 (February 3, 2019)
 
 ### Added

@@ -17,6 +17,7 @@ export interface ISuccess {
 }
 
 export interface IError {
+    adapter: string;
     type: string;
     code: number;
     message: string;

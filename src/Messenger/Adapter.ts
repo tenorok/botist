@@ -81,6 +81,7 @@ export class Messenger implements IAdapter {
             };
         }).catch((err: API.IRequestError) => {
             return Promise.reject({
+                adapter: Messenger.name,
                 type: err.error.error.type,
                 code: err.error.error.code,
                 message: err.error.error.message,
