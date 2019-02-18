@@ -4,8 +4,10 @@ import request = require('request-promise-native');
 import {
     IAdapter,
     IResponse as IBotistResponse,
+    IErrorHandler,
 } from '../Botist';
 import { IBaseMessage } from '../Message.t';
+import SendError from '../Errors/SendError';
 
 interface ISendTextParams {
     id: string;
@@ -17,7 +19,13 @@ export class Messenger implements IAdapter {
 
     public name: string = Messenger.name;
 
+    private _errorHandler?: IErrorHandler;
+
     constructor(private token: string, public webHookPath: string) {}
+
+    public set errorHandler(handler: IErrorHandler) {
+        this._errorHandler = handler;
+    }
 
     public onRequest(req: Request, res: Response): IBaseMessage[] {
         const body: API.IUpdate = req.body;
@@ -80,13 +88,14 @@ export class Messenger implements IAdapter {
                 messageId: res.message_id,
             };
         }).catch((err: API.IRequestError) => {
-            return Promise.reject({
+            // this._errorHandler always set when adapter added.
+            return this._errorHandler!(new SendError({
                 adapter: Messenger.name,
                 type: err.error.error.type,
                 code: err.error.error.code,
-                message: err.error.error.message,
+                text: err.error.error.message,
                 statusCode: err.statusCode,
-            });
+            }));
         });
     }
 

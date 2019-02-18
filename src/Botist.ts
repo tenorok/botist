@@ -1,5 +1,6 @@
 import * as http from 'http';
 import express = require('express');
+import bind from 'bind-decorator';
 
 import createDebug = require('debug');
 const debugAdapter = createDebug('botist:adapter');
@@ -11,18 +12,14 @@ import {
 import { IScene } from './MainScene';
 import { Scenario } from './Scenario';
 import { Response } from './Response';
+import SendError from './Errors/SendError';
 
 export interface ISuccess {
     messageId: string;
 }
 
-export interface IError {
-    adapter: string;
-    type: string;
-    code: number;
-    message: string;
-    statusCode: number;
-}
+/** Error is null when it was handled by catch callback. */
+export type IError = null | SendError;
 
 export type IResponse = ISuccess | IError;
 
@@ -33,14 +30,19 @@ export interface ITextMessageOptions {
 export interface IAdapter {
     readonly name: string;
     readonly webHookPath: string;
+    errorHandler: IErrorHandler;
     onRequest(req: express.Request, res: express.Response): IBaseMessage[];
     sendText(id: string, text: string, options?: ITextMessageOptions): Promise<IResponse>;
     sendMarkdown(id: string, markdown: string, options?: ITextMessageOptions): Promise<IResponse>;
 }
 
+export type IErrorHandler = (err: SendError) => Promise<IError>;
+type ICatch = (err: SendError) => void;
+
 export interface IOptions {
     port: number;
     scene: new (botist: Botist) => IScene;
+    catch?: ICatch;
 }
 
 export interface IFrom {
@@ -54,11 +56,13 @@ export class Botist {
     private server: http.Server;
     private _mainScene: IScene;
     private currentScene: Map<string, IScene> = new Map();
+    private catch?: ICatch;
 
     constructor(options: IOptions) {
         this.express = express();
         this.express.use(express.json());
         this.server = this.express.listen(options.port);
+        this.catch = options.catch;
 
         this._mainScene = new options.scene(this);
     }
@@ -70,6 +74,8 @@ export class Botist {
     public adapter(adapter: IAdapter): void {
         debugAdapter('new %s with webhook %s', adapter.name, adapter.webHookPath);
         this.adaptersList.push(adapter);
+
+        adapter.errorHandler = this.onError;
 
         this.express.post(adapter.webHookPath, (req, res) => {
             const messages = adapter.onRequest(req, res);
@@ -104,6 +110,16 @@ export class Botist {
 
     public mainScene(from: IFrom, res: Response) {
         this.scene(from, res, this._mainScene);
+    }
+
+    @bind
+    private onError(err: SendError): Promise<IError> {
+        if (this.catch) {
+            this.catch(err);
+            return Promise.resolve(null);
+        }
+
+        return Promise.reject(err);
     }
 
     private getSceneKey(from: IFrom): string {
