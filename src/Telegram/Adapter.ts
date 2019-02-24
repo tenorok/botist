@@ -6,8 +6,10 @@ import {
     IAdapter,
     ITextMessageOptions,
     IResponse as IBotistResponse,
+    IErrorHandler,
 } from '../Botist';
 import { IBaseMessage } from '../Message.t';
+import SendError from '../Errors/SendError';
 
 interface ISendTextTelegramOptions extends API._.SendMessageOptions {
     chat_id: string;
@@ -26,6 +28,7 @@ export class Telegram implements IAdapter {
     public name: string = Telegram.name;
 
     private apiUrl: string;
+    private _errorHandler?: IErrorHandler;
 
     constructor(token: string, private webHookUrl: string) {
         this.apiUrl = Telegram.apiHost + '/bot' + token + '/';
@@ -34,6 +37,10 @@ export class Telegram implements IAdapter {
 
     public get webHookPath(): string {
         return new URL(this.webHookUrl).pathname;
+    }
+
+    public set errorHandler(handler: IErrorHandler) {
+        this._errorHandler = handler;
     }
 
     public onRequest(req: Request, res: Response): IBaseMessage[] {
@@ -97,12 +104,14 @@ export class Telegram implements IAdapter {
                 messageId: String(res.result.message_id),
             };
         }).catch((err: API.IRequestError) => {
-            return Promise.reject({
+            // this._errorHandler always set when adapter added.
+            return this._errorHandler!(new SendError({
+                adapter: Telegram.name,
                 type: err.name,
                 code: err.error.error_code,
-                message: err.error.description,
+                text: err.error.description,
                 statusCode: err.statusCode,
-            });
+            }));
         });
     }
 

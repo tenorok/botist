@@ -1,3 +1,12 @@
+## 0.4.0 (February 24, 2019)
+
+### Added
+- Created `adapter` property with name of adapter to the error object of `sendText()` and `sendMarkdown()` methods.
+- To the constructor added option `catch`, it's function which can handle all errors to prevent unhandled rejections.
+
+### Changed
+- Methods `sendText()` and `sendMarkdown()` now throw error not as object, but as instance of `SendError`.
+
 ## 0.3.0 (February 3, 2019)
 
 ### Added
