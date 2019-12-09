@@ -103,8 +103,8 @@ export class Botist {
     }
 
     public scene(from: IFrom, res: Response, scene: IScene) {
-        this.getCurrentScene(from).leave(res);
-        scene.enter(res);
+        this.getCurrentScene(from).leave(res.msg, res);
+        scene.enter(res.msg, res);
         this.currentScene.set(this.getSceneKey(from), scene);
     }
 
