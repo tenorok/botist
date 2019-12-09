@@ -6,27 +6,28 @@ import {
     ITextMessageOptions,
 } from './Botist';
 import { Scenario } from './Scenario';
+import { IMessage } from './Message.t';
 
 export class Response {
     private from: IFrom;
 
     constructor(
         private botist: Botist,
-        private id: string,
         private adapter: IAdapter,
+        public readonly msg: IMessage,
     ) {
         this.from = {
             name: adapter.name,
-            chatId: id,
+            chatId: msg.chatId,
         };
     }
 
     public sendText(text: string, options?: ITextMessageOptions): Promise<IBotistResponse> {
-        return this.adapter.sendText(this.id, text, options);
+        return this.adapter.sendText(this.msg.chatId, text, options);
     }
 
     public sendMarkdown(markdown: string, options?: ITextMessageOptions): Promise<IBotistResponse> {
-        return this.adapter.sendMarkdown(this.id, markdown, options);
+        return this.adapter.sendMarkdown(this.msg.chatId, markdown, options);
     }
 
     /**

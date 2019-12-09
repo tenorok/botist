@@ -1,3 +1,8 @@
+## 0.5.0 (December 9, 2019)
+
+### Changed
+- Scene methods `enter(msg: IMessage, res: Response)` and `leave(msg: IMessage, res: Response)` now take `msg` as first argument similarly as handler of `text()`.
+
 ## 0.4.0 (February 24, 2019)
 
 ### Added

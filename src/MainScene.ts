@@ -24,8 +24,8 @@ interface IImageMessageHandler {
 
 export interface IScene {
     subscribe(): void;
-    enter(res: Response): void;
-    leave(res: Response): void;
+    enter(msg: IMessage, res: Response): void;
+    leave(msg: IMessage, res: Response): void;
     text(text: string | RegExp, callback: MessageCallback<ITextMessage>): void;
     onMessage(adapter: IAdapter, msg: IMessage, startHandlerIndex?: number): void;
 }
@@ -45,12 +45,12 @@ export abstract class MainScene implements IScene {
     /**
      * Called when scene is activating.
      */
-    public enter(_: Response) {}
+    public enter(_msg: IMessage, _res: Response) {}
 
     /**
      * Called when scene is deactivating.
      */
-    public leave(_: Response) {}
+    public leave(_msg: IMessage, _res: Response) {}
 
     public text(text: string | RegExp, callback: MessageCallback<ITextMessage>): void {
         this.messageHandlers.text.push({
@@ -72,7 +72,7 @@ export abstract class MainScene implements IScene {
                 }
             }
 
-            const res = new Response(this.botist, msg.chatId, adapter);
+            const res = new Response(this.botist, adapter, msg);
             handler.callback.call(null, msg, res, () => {
                 this.onMessage(adapter, msg, i + 1);
             });
