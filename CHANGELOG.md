@@ -1,3 +1,8 @@
+## 0.5.1 (January 14, 2020)
+
+### Added
+- Telegram/Adapter creates property `language` to the message when it available.
+
 ## 0.5.0 (December 9, 2019)
 
 ### Changed

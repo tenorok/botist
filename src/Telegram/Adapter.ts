@@ -44,17 +44,23 @@ export class Telegram implements IAdapter {
     }
 
     public onRequest(req: Request, res: Response): IBaseMessage[] {
-        const body: API._.Update = req.body;
+        const { message }: API._.Update = req.body;
         res.sendStatus(200);
 
-        if (body.message) {
-            if (body.message.text) {
-                return [{
+        if (message) {
+            if (message.text) {
+                const textMessage: IBaseMessage = {
                     type: 'text',
-                    chatId: String(body.message.chat.id),
-                    timestamp: body.message.date,
-                    text: body.message.text,
-                }];
+                    chatId: String(message.chat.id),
+                    timestamp: message.date,
+                    text: message.text,
+                };
+
+                if (message.from && message.from.language_code) {
+                    textMessage.language = message.from.language_code;
+                }
+
+                return [textMessage];
             }
         }
 
