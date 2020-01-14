@@ -1,6 +1,10 @@
 interface IAbstractMessage {
     chatId: string;
     timestamp: number;
+    /**
+     * @see https://en.wikipedia.org/wiki/IETF_language_tag
+     */
+    language?: string;
 }
 
 interface IBaseTextMessage extends IAbstractMessage {
