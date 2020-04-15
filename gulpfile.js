@@ -20,10 +20,17 @@ gulp.task('test', () => {
         }));
 });
 
+gulp.task('changelog', () => {
+    const date = new Date().toLocaleDateString('en-EN', { day: 'numeric', year: 'numeric', month: 'long' });
+    return gulp.src('CHANGELOG.md')
+        .pipe(replace('## [Unreleased]', `## ${argv.tag} (${date})`))
+        .pipe(gulp.dest('.'));
+});
+
 // git checkout dev
 // git stash
 // gulp release --tag x.y.z
-gulp.task('release', ['test', 'changelog'], async () => {
+gulp.task('release', gulp.series('test', 'changelog', async () => {
     const tag = argv.tag;
     await execFile('git', ['checkout', 'dev']);
     await execFile('npm', ['version', '--no-git-tag-version', tag]);
@@ -54,14 +61,7 @@ gulp.task('release', ['test', 'changelog'], async () => {
             resolve();
         });
     });
-});
-
-gulp.task('changelog', () => {
-    const date = new Date().toLocaleDateString('en-EN', { day: 'numeric', year: 'numeric', month: 'long' });
-    return gulp.src('CHANGELOG.md')
-        .pipe(replace('## [Unreleased]', `## ${argv.tag} (${date})`))
-        .pipe(gulp.dest('.'));
-});
+}));
 
 // gulp publish --tag x.y.z
 gulp.task('publish', () => {
