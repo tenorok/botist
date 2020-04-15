@@ -13,6 +13,7 @@ import { IScene } from './MainScene';
 import { Scenario } from './Scenario';
 import { Response } from './Response';
 import SendError from './Errors/SendError';
+import { IEvent } from './Events/Event';
 
 export interface ISuccess {
     messageId: string;
@@ -102,14 +103,14 @@ export class Botist {
         scenario.enter(this, from, res, this.getCurrentScene(from), next);
     }
 
-    public scene(from: IFrom, res: Response, scene: IScene) {
-        this.getCurrentScene(from).leave(res.msg, res);
-        scene.enter(res.msg, res);
+    public scene(from: IFrom, res: Response, event: IEvent, scene: IScene) {
+        this.getCurrentScene(from).leave(res.msg, res, event);
+        scene.enter(res.msg, res, event);
         this.currentScene.set(this.getSceneKey(from), scene);
     }
 
-    public mainScene(from: IFrom, res: Response) {
-        this.scene(from, res, this._mainScene);
+    public mainScene(from: IFrom, res: Response, event: IEvent) {
+        this.scene(from, res, event, this._mainScene);
     }
 
     @bind

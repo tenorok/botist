@@ -15,3 +15,5 @@ export { Scenario } from './Scenario';
 export { Messenger } from './Messenger/Adapter';
 export { Telegram } from './Telegram/Adapter';
 export { Response as IResponse } from './Response';
+export { IEvent } from './Events/Event';
+export * from './Events/SceneEvents';
