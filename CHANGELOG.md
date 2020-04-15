@@ -1,4 +1,4 @@
-## [Unreleased]
+## 0.6.0 (April 15, 2020)
 
 ### Added
 - Scene methods `enter()` and `leave()` now take an `event: IEvent` as third argument. The `event` is instance of `Event` descendant class which reports about action that led to the handler, it can be:
