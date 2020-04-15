@@ -2,13 +2,15 @@ import { Botist } from './Botist';
 import { MainScene } from './MainScene';
 import { Response } from './Response';
 import { IMessage } from './Message.t';
+import { IEvent } from './Events/Event';
+import { ExitTTLEvent } from './Events/SceneEvents';
 
 export interface ISceneConstructor {
     new (
         botist: Botist,
-        back: () => void,
-        next: () => void,
-        exit: () => void,
+        back: (event?: IEvent) => void,
+        next: (event?: IEvent) => void,
+        exit: (event?: IEvent) => void,
     ): Scene;
 }
 
@@ -22,23 +24,23 @@ export abstract class Scene extends MainScene {
 
     constructor(
         botist: Botist,
-        protected back: () => void,
-        protected next: () => void,
-        protected exit: () => void,
+        protected back: (event?: IEvent) => void,
+        protected next: (event?: IEvent) => void,
+        protected exit: (event?: IEvent) => void,
     ) {
         super(botist);
     }
 
-    public enter(msg: IMessage, res: Response) {
-        super.enter(msg, res);
+    public enter(msg: IMessage, res: Response, event: IEvent) {
+        super.enter(msg, res, event);
 
         this.enterTimeoutId = setTimeout(() => {
-            this.exit();
+            this.exit(new ExitTTLEvent());
         }, this.ttl * 60 * 1000);
     }
 
-    public leave(msg: IMessage, res: Response) {
-        super.leave(msg, res);
+    public leave(msg: IMessage, res: Response, event: IEvent) {
+        super.leave(msg, res, event);
 
         if (this.enterTimeoutId) {
             clearTimeout(this.enterTimeoutId);

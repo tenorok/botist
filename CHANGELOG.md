@@ -1,3 +1,43 @@
+## 0.6.0 (April 15, 2020)
+
+### Added
+- Scene methods `enter()` and `leave()` now take an `event: IEvent` as third argument. The `event` is instance of `Event` descendant class which reports about action that led to the handler, it can be:
+  - `StartEvent` – when starts first scene of scenario
+  - `BackEvent` – when `scene.back()` was called
+  - `NextEvent` – when `scene.next()` was called
+  - `ExitEvent` – when `scene.exit()` was called
+  - `ExitTTLEvent` – when the scene was leaved by time to leave
+
+  In addition it possible to pass custom event to the `back()`, `next()` or `exit()` methods, for example:
+  ```ts
+  // file: CustomScene.ts
+  import { Scene, IEvent } from 'botist';
+  export class CustomEvent implements IEvent {
+    public readonly type = 'custom-event';
+  }
+  export default class CustomScene extends Scene {
+    public subscribe(): void {
+      this.text('/back', () => {
+        this.back(new CustomEvent());
+      });
+    }
+  }
+  ```
+
+  ```ts
+  // file: MainScene.ts
+  import { MainScene, IMessage, IResponse, IEvent } from 'botist';
+  import { CustomEvent } from './CustomScene.ts';
+  export class Main extends MainScene {
+    public enter(msg: IMessage, res: IResponse, event: IEvent): void {
+      super.enter(msg, res, event);
+      if (event instanceof CustomEvent) {
+        console.log(event); // CustomEvent { type: 'custom-event' }
+      }
+    }
+  }
+  ```
+
 ## 0.5.1 (January 14, 2020)
 
 ### Added

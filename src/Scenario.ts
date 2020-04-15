@@ -5,6 +5,13 @@ import {
 import { IScene } from './MainScene';
 import { ISceneConstructor } from './Scene';
 import { Response } from './Response';
+import { IEvent } from './Events/Event';
+import {
+    StartEvent,
+    BackEvent,
+    NextEvent,
+    ExitEvent,
+} from './Events/SceneEvents';
 
 export class Scenario {
     private scenesInstances: IScene[] = [];
@@ -16,7 +23,7 @@ export class Scenario {
         this.scenesInstances.push(previousScene);
         const firstScene = this.createScene(botist, from, res, next);
         if (firstScene) {
-            botist.scene(from, res, firstScene);
+            botist.scene(from, res, new StartEvent(), firstScene);
         }
     }
 
@@ -31,17 +38,17 @@ export class Scenario {
             return null;
         }
 
-        const scene = new this.scenes[sceneIndex](botist, () => {
-            botist.scene(from, res, this.scenesInstances[sceneIndex]);
-        }, () => {
+        const scene = new this.scenes[sceneIndex](botist, (event: IEvent = new BackEvent()) => {
+            botist.scene(from, res, event, this.scenesInstances[sceneIndex]);
+        }, (event: IEvent = new NextEvent()) => {
             const nextScene = this.createScene(botist, from, res, next, sceneIndex + 1);
             if (nextScene) {
-                botist.scene(from, res, nextScene);
+                botist.scene(from, res, event, nextScene);
             } else if (typeof next === 'function') {
                 next();
             }
-        }, () => {
-            botist.mainScene(from, res);
+        }, (event: IEvent = new ExitEvent()) => {
+            botist.mainScene(from, res, event);
         });
 
         this.scenesInstances.push(scene);

@@ -5,6 +5,7 @@ import {
     IMessage,
 } from './Message.t';
 import { Response } from './Response';
+import { IEvent } from './Events/Event';
 
 interface IMessageHandlers {
     text: ITextMessageHandler[];
@@ -24,8 +25,8 @@ interface IImageMessageHandler {
 
 export interface IScene {
     subscribe(): void;
-    enter(msg: IMessage, res: Response): void;
-    leave(msg: IMessage, res: Response): void;
+    enter(msg: IMessage, res: Response, event: IEvent): void;
+    leave(msg: IMessage, res: Response, event: IEvent): void;
     text(text: string | RegExp, callback: MessageCallback<ITextMessage>): void;
     onMessage(adapter: IAdapter, msg: IMessage, startHandlerIndex?: number): void;
 }
@@ -45,12 +46,12 @@ export abstract class MainScene implements IScene {
     /**
      * Called when scene is activating.
      */
-    public enter(_msg: IMessage, _res: Response) {}
+    public enter(_msg: IMessage, _res: Response, _event: IEvent) {}
 
     /**
      * Called when scene is deactivating.
      */
-    public leave(_msg: IMessage, _res: Response) {}
+    public leave(_msg: IMessage, _res: Response, _event: IEvent) {}
 
     public text(text: string | RegExp, callback: MessageCallback<ITextMessage>): void {
         this.messageHandlers.text.push({
