@@ -1,3 +1,88 @@
+## [Unreleased]
+
+### Added
+- Added `next()` function as third parameter of message handler.
+
+  The `next()` function allows you to call the next matching message handler within a scene or middleware. You can use asynchronous handlers as usual. In the following example of main scene, both handlers will be called:
+  ```ts
+  import { MainScene } from 'botist';
+
+  export class Main extends MainScene {
+    public subscribe(): void {
+      this.text(/.*/, (msg, res, next) => {
+        console.log('first handler');
+        next();
+      });
+
+      this.text(/.*/, () => {
+        console.log('second handler');
+      });
+    }
+  }
+  ```
+
+- Added the ability to declare middlewares for message which called before the current scene handlers and after them.
+
+  Example of middleware declaration and using:
+  ```ts
+  // file: middleware.ts
+  import { MessageMiddleware } from 'botist';
+
+  export class Middleware extends MessageMiddleware {
+    public subscribe(): void {
+      this.text(/.*/, (msg, res, next) => {
+        console.log('1');
+        next();
+      });
+
+      this.text(/.*/, () => {
+        console.log('2');
+      });
+    }
+  }
+  ```
+
+  ```ts
+  // file: index.ts
+  import { Botist, MainScene, Telegram } from 'botist';
+  import { Middleware } from './middleware';
+
+  const bot = new Botist({
+      port: 5555,
+      scene: class Main extends MainScene {
+        public subscribe() {
+          this.text(/.*/, async () => {
+            console.log('3');
+          });
+        }
+      },
+  });
+
+  bot.beforeScene(new Middleware(bot)); // Prints: '1', '2'.
+  // Prints '3' from main scene.
+  bot.afterScene(new Middleware(bot)); // Prints: '1', '2' again.
+
+  bot.adapter(new Telegram('token', 'webHookUrl'));
+  ```
+
+  Sometimes you need to prevent calling message handlers of the next middleware or current scene. You can achieve this by declare `continue()` method which returns `false`. Middleware from the following example, added to `beforeScene()` will prevent all message handlers of the main scene from being called:
+
+  ```ts
+  import { MessageMiddleware } from 'botist';
+
+  export class Middleware extends MessageMiddleware {
+    public subscribe(): void {
+      this.text(/.*/, (msg, res) => {
+        // ...
+      });
+    }
+
+    public continue(): boolean {
+      return false;
+    }
+  }
+  ```
+
 ## 0.6.0 (April 15, 2020)
 
 ### Added
