@@ -5,6 +5,7 @@ import {
     IImageMessage,
     IMessage,
 } from '../Message.t';
+import { IScene } from '../MainScene';
 
 export type MessageCallback<M> = (msg: M, res: Response, next: () => void) => void;
 
@@ -25,6 +26,7 @@ interface IMessageHandlers {
 export interface IMessageMiddleware {
     subscribe(): void;
     text(text: string | RegExp, callback: MessageCallback<ITextMessage>): void | Promise<void>;
+    guard(scene: IScene, msg: IMessage): boolean;
     continue(): boolean;
     onMessage(adapter: IAdapter, msg: IMessage, startHandlerIndex?: number): Promise<void>;
 }
@@ -46,6 +48,13 @@ export abstract class MessageMiddleware implements IMessageMiddleware {
             text,
             callback,
         });
+    }
+
+    /**
+     * Determines the need to applying middleware for scene and message.
+     */
+    public guard(_scene: IScene, _msg: IMessage) {
+        return true;
     }
 
     /**

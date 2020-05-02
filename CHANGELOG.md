@@ -65,6 +65,8 @@
   bot.adapter(new Telegram('token', 'webHookUrl'));
   ```
 
+- Added ability to prevent calling message handlers after current middleware.
+
   Sometimes you need to prevent calling message handlers of the next middleware or current scene. You can achieve this by declare `continue()` method which returns `false`. Middleware from the following example, added to `beforeScene()` will prevent all message handlers of the main scene from being called:
 
   ```ts
@@ -81,6 +83,54 @@
       return false;
     }
   }
+  ```
+
+- Added ability to restrict applying middleware handlers.
+
+  Sometimes you need to apply middleware only for certain scene or message. You can achieve this by declare `guard()` method which returns `false`. Middleware from the following example will be applying only after main scene:
+
+  ```ts
+  // file: middleware.ts
+  import { Botist, MessageMiddleware, MainScene, IScene, IMessage } from 'botist';
+
+  export class Middleware extends MessageMiddleware {
+    constructor(bot: Botist, private TargetScene: typeof MainScene) {
+      super(bot);
+    }
+
+    public guard(scene: IScene, msg: IMessage): boolean {
+      return scene instanceof this.TargetScene;
+    }
+
+    public subscribe(): void {
+      this.text(/.*/, (msg, res, next) => {
+        // ...
+      });
+    }
+  }
+  ```
+
+  ```ts
+  // file: index.ts
+  import { Botist, MainScene, Telegram } from 'botist';
+  import { Middleware } from './middleware';
+
+  class Main extends MainScene {
+    public subscribe() {
+      this.text(/.*/, () => {
+        // ...
+      });
+    }
+  }
+
+  const bot = new Botist({
+      port: 5555,
+      scene: Main,
+  });
+
+  bot.afterScene(new Middleware(bot, Main));
+
+  bot.adapter(new Telegram('token', 'webHookUrl'));
   ```
 
 ## 0.6.0 (April 15, 2020)

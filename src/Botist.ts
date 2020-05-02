@@ -126,6 +126,10 @@ export class Botist {
 
             const currentScene = this.getCurrentScene(msg);
             for (const middleware of [...this.beforeSceneList, currentScene, ...this.afterSceneList]) {
+                if (!middleware.guard(currentScene, msg)) {
+                    continue;
+                }
+
                 await middleware.onMessage(adapter, msg);
                 if (!middleware.continue()) {
                     continue messages;

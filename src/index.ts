@@ -9,7 +9,7 @@ export {
     ITextMessage,
     IImageMessage,
 } from './Message.t';
-export { MainScene } from './MainScene';
+export { MainScene, IScene } from './MainScene';
 export { Scene } from './Scene';
 export { Scenario } from './Scenario';
 export { Messenger } from './Messenger/Adapter';
