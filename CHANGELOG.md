@@ -133,6 +133,49 @@
   bot.adapter(new Telegram('token', 'webHookUrl'));
   ```
 
+- Added option `labels: string[]` to the `text()` subscriber. It allows to mark subscribers an arbitrary set of labels to identify them from middlewares in the future.
+
+- Added special context for text subscribers. Subscriber handler now calling with instance of `SubscriberContext` which includes two methods that allows to making a special logic in the middlewares:
+  - `getSceneSubscribers(filter?: ISubscribersFilter): ISubscriber[]` returns the subscribers list of the current scene with possibility to filter them.
+  - `match(subscriber: ISubscriber): boolean` returns the matching result of passed subscriber to the current scene with current message.
+
+  Example of the scene with custom `command()` subscriber marked by label:
+
+  ```ts
+  import { Botist, MainScene, ISubscriberCallback, ITextMessage } from 'botist';
+
+  class Main extends MainScene {
+    public subscribe() {
+      this.command(/.*/, () => {
+        // ...
+      });
+    }
+
+    private command(text: string, callback: ISubscriberCallback<ITextMessage>): void {
+      this.text(text, callback, { labels: ['command'] });
+    }
+  }
+  ```
+
+  And example middleware which logic based on the `command` label of the scene subscribers:
+
+  ```ts
+  import { MessageMiddleware, ITextMessage, ISubscriber } from 'botist';
+
+  export class Middleware extends MessageMiddleware {
+    public subscribe(): void {
+      this.text(/.*/, function(msg: ITextMessage) => {
+        // Detect if a message is a command.
+        const isCommand = this.getSceneSubscribers((subscriber: ISubscriber) => {
+          return this.match(subscriber) && subscriber.options.labels.includes('command');
+        }).length > 0;
+
+        // ...
+      });
+    }
+  }
+  ```
+
 ## 0.6.0 (April 15, 2020)
 
 ### Added

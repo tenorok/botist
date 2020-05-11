@@ -6,33 +6,46 @@ import {
     IMessage,
 } from '../Message.t';
 import { IScene } from '../MainScene';
+import { SubscriberContext } from '../SubscriberContext';
 
-export type MessageCallback<M> = (msg: M, res: Response, next: () => void) => void;
+export type ISubscriberCallback<M> = (this: SubscriberContext, msg: M, res: Response, next: () => void) => void;
 
-interface ITextMessageHandler {
+interface ISubscriberOptions {
+    labels?: string[];
+}
+
+interface IMessageInnerOptions<TYPE extends string> extends Required<ISubscriberOptions> {
+    type: TYPE;
+}
+
+export interface ITextSubscriber {
     text: string | RegExp;
-    callback: MessageCallback<ITextMessage>;
+    callback: ISubscriberCallback<ITextMessage>;
+    options: IMessageInnerOptions<'text'>;
 }
 
-interface IImageMessageHandler {
-    callback: MessageCallback<IImageMessage>;
+export interface IImageSubscriber {
+    callback: ISubscriberCallback<IImageMessage>;
+    options: IMessageInnerOptions<'image'>;
 }
 
-interface IMessageHandlers {
-    text: ITextMessageHandler[];
-    image: IImageMessageHandler[];
+export type ISubscriber = ITextSubscriber | IImageSubscriber;
+
+export interface ISubscribers {
+    text: ITextSubscriber[];
+    image: IImageSubscriber[];
 }
 
 export interface IMessageMiddleware {
     subscribe(): void;
-    text(text: string | RegExp, callback: MessageCallback<ITextMessage>): void | Promise<void>;
+    text(text: string | RegExp, callback: ISubscriberCallback<ITextMessage>): void | Promise<void>;
     guard(scene: IScene, msg: IMessage): boolean;
     continue(): boolean;
-    onMessage(adapter: IAdapter, msg: IMessage, startHandlerIndex?: number): Promise<void>;
+    onMessage(adapter: IAdapter, scene: IScene, msg: IMessage, startHandlerIndex?: number): Promise<void>;
 }
 
 export abstract class MessageMiddleware implements IMessageMiddleware {
-    private messageHandlers: IMessageHandlers = {
+    protected _subscribers: ISubscribers = {
         text: [],
         image: [],
     };
@@ -43,43 +56,57 @@ export abstract class MessageMiddleware implements IMessageMiddleware {
 
     public abstract subscribe(): void;
 
-    public text(text: string | RegExp, callback: MessageCallback<ITextMessage>): void {
-        this.messageHandlers.text.push({
+    public text(
+        text: string | RegExp,
+        callback: ISubscriberCallback<ITextMessage>,
+        options?: ISubscriberOptions,
+    ): void {
+        const innerOptions: IMessageInnerOptions<'text'> = {
+            type: 'text',
+            labels: [],
+        };
+
+        if (options && options.labels) {
+            innerOptions.labels.push(...options.labels);
+        }
+
+        this._subscribers.text.push({
             text,
             callback,
+            options: innerOptions,
         });
     }
 
     /**
      * Determines the need to applying middleware for scene and message.
      */
-    public guard(_scene: IScene, _msg: IMessage) {
+    public guard(_scene: IScene, _msg: IMessage): boolean {
         return true;
     }
 
     /**
      * Determines the need to call the handlers of the next middleware.
      */
-    public continue() {
+    public continue(): boolean {
         return true;
     }
 
-    public async onMessage(adapter: IAdapter, msg: IMessage, startHandlerIndex: number = 0): Promise<void> {
-        for (let i = startHandlerIndex; i < this.messageHandlers[msg.type].length; i++) {
-            const handler = this.messageHandlers[msg.type][i];
-            if (msg.type === 'text') {
-                const handlerText = (handler as ITextMessageHandler).text;
-                if (
-                    typeof handlerText === 'string' && msg.text !== handlerText ||
-                    handlerText instanceof RegExp && !msg.text.match(handlerText)
-                ) {
-                    continue;
-                }
+    public async onMessage(
+        adapter: IAdapter,
+        scene: IScene,
+        msg: IMessage,
+        startSubscriberIndex: number = 0,
+    ): Promise<void> {
+        for (let i = startSubscriberIndex; i < this._subscribers[msg.type].length; i++) {
+            const ctx = new SubscriberContext(scene, msg);
+            const subscriber = this._subscribers[msg.type][i];
+            if (!ctx.match(subscriber)) {
+                continue;
             }
 
             const res = new Response(this.botist, adapter, msg);
-            return handler.callback.call(null, msg, res, () => {
-                return this.onMessage(adapter, msg, i + 1);
+            return subscriber.callback.call(ctx, msg, res, () => {
+                return this.onMessage(adapter, scene, msg, i + 1);
             });
         }
     }

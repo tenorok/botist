@@ -130,7 +130,7 @@ export class Botist {
                     continue;
                 }
 
-                await middleware.onMessage(adapter, msg);
+                await middleware.onMessage(adapter, currentScene, msg);
                 if (!middleware.continue()) {
                     continue messages;
                 }
