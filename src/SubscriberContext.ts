@@ -1,3 +1,4 @@
+import { ReadonlyDeep } from 'type-fest';
 import { ISubscriber, ITextSubscriber } from './Middlewares/Message';
 import { IScene } from './MainScene';
 import { IMessage } from './Message.t';
@@ -14,7 +15,7 @@ export class SubscriberContext {
         private msg: IMessage,
     ) {}
 
-    public getSceneSubscribers(filter?: ISubscribersFilter): Array<Readonly<ISubscriber>> {
+    public getSceneSubscribers(filter?: ISubscribersFilter): Array<ReadonlyDeep<ISubscriber>> {
         const list: ISubscriber[] = [];
         list.push(...this.scene.subscribers.text, ...this.scene.subscribers.image);
 

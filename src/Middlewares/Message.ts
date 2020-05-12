@@ -97,15 +97,17 @@ export abstract class MessageMiddleware implements IMessageMiddleware {
         msg: IMessage,
         startSubscriberIndex: number = 0,
     ): Promise<void> {
-        for (let i = startSubscriberIndex; i < this._subscribers[msg.type].length; i++) {
+        const subscribers = this._subscribers[msg.type];
+        for (let i = startSubscriberIndex; i < subscribers.length; i++) {
             const ctx = new SubscriberContext(scene, msg);
-            const subscriber = this._subscribers[msg.type][i];
+            const subscriber = subscribers[i];
             if (!ctx.match(subscriber)) {
                 continue;
             }
 
             const res = new Response(this.botist, adapter, msg);
-            return subscriber.callback.call(ctx, msg, res, () => {
+            // If subscriber matched to message then their types are equal.
+            return (subscriber as ITextSubscriber).callback.call(ctx, msg as ITextMessage, res, () => {
                 return this.onMessage(adapter, scene, msg, i + 1);
             });
         }
