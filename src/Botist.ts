@@ -12,6 +12,7 @@ import {
 import { IScene } from './MainScene';
 import { Scenario } from './Scenario';
 import { Response } from './Response';
+import { IMessageMiddleware } from './Middlewares/Message';
 import SendError from './Errors/SendError';
 import { IEvent } from './Events/Event';
 
@@ -54,6 +55,8 @@ export interface IFrom {
 export class Botist {
     private express: express.Express;
     private adaptersList: IAdapter[] = [];
+    private beforeSceneList: IMessageMiddleware[] = [];
+    private afterSceneList: IMessageMiddleware[] = [];
     private server: http.Server;
     private _mainScene: IScene;
     private currentScene: Map<string, IScene> = new Map();
@@ -78,15 +81,7 @@ export class Botist {
 
         adapter.errorHandler = this.onError;
 
-        this.express.post(adapter.webHookPath, (req, res) => {
-            const messages = adapter.onRequest(req, res);
-            debugAdapter('%s requested %O', adapter.name, messages);
-            for (const baseMsg of messages) {
-                const msg: IMessage = baseMsg as IMessage;
-                msg.name = adapter.constructor.name;
-                this.getCurrentScene(msg).onMessage(adapter, msg);
-            }
-        });
+        this.express.post(adapter.webHookPath, this.onAdapterRequest.bind(this, adapter));
     }
 
     public getAdapter(name: string): IAdapter | null {
@@ -111,6 +106,36 @@ export class Botist {
 
     public mainScene(from: IFrom, res: Response, event: IEvent) {
         this.scene(from, res, event, this._mainScene);
+    }
+
+    public beforeScene(middleware: IMessageMiddleware) {
+        this.beforeSceneList.push(middleware);
+    }
+
+    public afterScene(middleware: IMessageMiddleware) {
+        this.afterSceneList.push(middleware);
+    }
+
+    private async onAdapterRequest(adapter: IAdapter, req: express.Request, res: express.Response) {
+        const messages = adapter.onRequest(req, res);
+        debugAdapter('%s requested %O', adapter.name, messages);
+
+        messages: for (const baseMsg of messages) {
+            const msg: IMessage = baseMsg as IMessage;
+            msg.name = adapter.constructor.name;
+
+            const currentScene = this.getCurrentScene(msg);
+            for (const middleware of [...this.beforeSceneList, currentScene, ...this.afterSceneList]) {
+                if (!middleware.guard(currentScene, msg)) {
+                    continue;
+                }
+
+                await middleware.onMessage(adapter, currentScene, msg);
+                if (!middleware.continue()) {
+                    continue messages;
+                }
+            }
+        }
     }
 
     @bind

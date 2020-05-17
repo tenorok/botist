@@ -1,3 +1,181 @@
+## 0.7.0 (May 17, 2020)
+
+### Added
+- Added `next()` function as third parameter of message handler.
+
+  The `next()` function allows you to call the next matching message handler within a scene or middleware. You can use asynchronous handlers as usual. In the following example of main scene, both handlers will be called:
+  ```ts
+  import { MainScene } from 'botist';
+
+  export class Main extends MainScene {
+    public subscribe(): void {
+      this.text(/.*/, (msg, res, next) => {
+        console.log('first handler');
+        next();
+      });
+
+      this.text(/.*/, () => {
+        console.log('second handler');
+      });
+    }
+  }
+  ```
+
+- Added the ability to declare middlewares for message which called before the current scene handlers and after them.
+
+  Example of middleware declaration and using:
+  ```ts
+  // file: middleware.ts
+  import { MessageMiddleware } from 'botist';
+
+  export class Middleware extends MessageMiddleware {
+    public subscribe(): void {
+      this.text(/.*/, (msg, res, next) => {
+        console.log('1');
+        next();
+      });
+
+      this.text(/.*/, () => {
+        console.log('2');
+      });
+    }
+  }
+  ```
+
+  ```ts
+  // file: index.ts
+  import { Botist, MainScene, Telegram } from 'botist';
+  import { Middleware } from './middleware';
+
+  const bot = new Botist({
+      port: 5555,
+      scene: class Main extends MainScene {
+        public subscribe() {
+          this.text(/.*/, async () => {
+            console.log('3');
+          });
+        }
+      },
+  });
+
+  bot.beforeScene(new Middleware(bot)); // Prints: '1', '2'.
+  // Prints '3' from main scene.
+  bot.afterScene(new Middleware(bot)); // Prints: '1', '2' again.
+
+  bot.adapter(new Telegram('token', 'webHookUrl'));
+  ```
+
+- Added ability to prevent calling message handlers after current middleware.
+
+  Sometimes you need to prevent calling message handlers of the next middleware or current scene. You can achieve this by declare `continue()` method which returns `false`. Middleware from the following example, added to `beforeScene()` will prevent all message handlers of the main scene from being called:
+
+  ```ts
+  import { MessageMiddleware } from 'botist';
+
+  export class Middleware extends MessageMiddleware {
+    public subscribe(): void {
+      this.text(/.*/, (msg, res) => {
+        // ...
+      });
+    }
+
+    public continue(): boolean {
+      return false;
+    }
+  }
+  ```
+
+- Added ability to restrict applying middleware handlers.
+
+  Sometimes you need to apply middleware only for certain scene or message. You can achieve this by declare `guard()` method which returns `false`. Middleware from the following example will be applying only after main scene:
+
+  ```ts
+  // file: middleware.ts
+  import { Botist, MessageMiddleware, MainScene, IScene, IMessage } from 'botist';
+
+  export class Middleware extends MessageMiddleware {
+    constructor(bot: Botist, private TargetScene: typeof MainScene) {
+      super(bot);
+    }
+
+    public guard(scene: IScene, msg: IMessage): boolean {
+      return scene instanceof this.TargetScene;
+    }
+
+    public subscribe(): void {
+      this.text(/.*/, (msg, res, next) => {
+        // ...
+      });
+    }
+  }
+  ```
+
+  ```ts
+  // file: index.ts
+  import { Botist, MainScene, Telegram } from 'botist';
+  import { Middleware } from './middleware';
+
+  class Main extends MainScene {
+    public subscribe() {
+      this.text(/.*/, () => {
+        // ...
+      });
+    }
+  }
+
+  const bot = new Botist({
+      port: 5555,
+      scene: Main,
+  });
+
+  bot.afterScene(new Middleware(bot, Main));
+
+  bot.adapter(new Telegram('token', 'webHookUrl'));
+  ```
+
+- Added option `labels: string[]` to the `text()` subscriber. It allows to mark subscribers an arbitrary set of labels to identify them from middlewares in the future.
+
+- Added special context for text subscribers. Subscriber handler now calling with instance of `SubscriberContext` which includes two methods that allows to making a special logic in the middlewares:
+  - `getSceneSubscribers(filter?: ISubscribersFilter): ISubscriber[]` returns the subscribers list of the current scene with possibility to filter them.
+  - `match(subscriber: ISubscriber): boolean` returns the matching result of passed subscriber to the current scene with current message.
+
+  Example of the scene with custom `command()` subscriber marked by label:
+
+  ```ts
+  import { Botist, MainScene, ISubscriberCallback, ITextMessage } from 'botist';
+
+  class Main extends MainScene {
+    public subscribe() {
+      this.command(/.*/, () => {
+        // ...
+      });
+    }
+
+    private command(text: string, callback: ISubscriberCallback<ITextMessage>): void {
+      this.text(text, callback, { labels: ['command'] });
+    }
+  }
+  ```
+
+  And example middleware which logic based on the `command` label of the scene subscribers:
+
+  ```ts
+  import { MessageMiddleware, ITextMessage, ISubscriber } from 'botist';
+
+  export class Middleware extends MessageMiddleware {
+    public subscribe(): void {
+      this.text(/.*/, function(msg: ITextMessage) => {
+        // Detect if a message is a command.
+        const isCommand = this.getSceneSubscribers((subscriber: ISubscriber) => {
+          return this.match(subscriber) && subscriber.options.labels.includes('command');
+        }).length > 0;
+
+        // ...
+      });
+    }
+  }
+  ```
+
 ## 0.6.0 (April 15, 2020)
 
 ### Added
