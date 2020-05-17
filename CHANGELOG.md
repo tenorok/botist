@@ -1,4 +1,4 @@
-## [Unreleased]
+## 0.7.0 (May 17, 2020)
 
 ### Added
 - Added `next()` function as third parameter of message handler.
