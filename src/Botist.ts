@@ -48,7 +48,7 @@ export interface IOptions {
 }
 
 export interface IFrom {
-    name: string;
+    adapter: string;
     chatId: string;
 }
 
@@ -122,7 +122,7 @@ export class Botist {
 
         messages: for (const baseMsg of messages) {
             const msg: IMessage = baseMsg as IMessage;
-            msg.name = adapter.constructor.name;
+            msg.adapter = adapter.constructor.name;
 
             const currentScene = this.getCurrentScene(msg);
             for (const middleware of [...this.beforeSceneList, currentScene, ...this.afterSceneList]) {
@@ -149,7 +149,7 @@ export class Botist {
     }
 
     private getSceneKey(from: IFrom): string {
-        return from.name + from.chatId;
+        return from.adapter + from.chatId;
     }
 
     private getCurrentScene(from: IFrom): IScene {

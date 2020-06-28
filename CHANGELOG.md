@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+### Changed
+- Property `name` renamed to `adapter` in message object.
+
+
 ### Added
 - Created `chatId` and `messageType` properties to the error object of sending messages methods.
 

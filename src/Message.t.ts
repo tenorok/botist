@@ -24,7 +24,7 @@ interface IBaseImageMessage extends IAbstractMessage {
 
 interface IExtendedMessage {
     /** Adapter name. */
-    name: string;
+    adapter: string;
 }
 
 export type IBaseMessage = IBaseTextMessage | IBaseImageMessage;
