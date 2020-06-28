@@ -6,7 +6,10 @@ import {
     IResponse as IBotistResponse,
     IErrorHandler,
 } from '../Botist';
-import { IBaseMessage } from '../Message.t';
+import {
+    IBaseMessage,
+    MessageType,
+} from '../Message.t';
 import SendError from '../Errors/SendError';
 
 interface ISendTextParams {
@@ -36,7 +39,7 @@ export class Messenger implements IAdapter {
             for (const message of record.messaging) {
                 if (this.hasMessageText(message)) {
                     messages.push({
-                        type: 'text',
+                        type: MessageType.text,
                         chatId: message.sender.id,
                         timestamp: message.timestamp,
                         text: message.message.text,
@@ -91,9 +94,11 @@ export class Messenger implements IAdapter {
             // this._errorHandler always set when adapter added.
             return this._errorHandler!(new SendError({
                 adapter: Messenger.name,
+                chatId: params.id,
+                messageType: MessageType.text,
                 type: err.error.error.type,
-                code: err.error.error.code,
                 text: err.error.error.message,
+                code: err.error.error.code,
                 statusCode: err.statusCode,
             }));
         });

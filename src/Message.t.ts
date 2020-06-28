@@ -7,13 +7,18 @@ interface IAbstractMessage {
     language?: string;
 }
 
+export enum MessageType {
+    text = 'text',
+    image = 'image',
+}
+
 interface IBaseTextMessage extends IAbstractMessage {
-    type: 'text';
+    type: MessageType.text;
     text: string;
 }
 
 interface IBaseImageMessage extends IAbstractMessage {
-    type: 'image';
+    type: MessageType.image;
     url: string;
 }
 

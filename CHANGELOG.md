@@ -1,3 +1,82 @@
+## [Unreleased]
+
+### Added
+- Created `chatId` and `messageType` properties to the error object of sending messages methods.
+
+  Example of catching error on the place after trying to send text message:
+  ```ts
+  import { Botist, MainScene, Telegram } from 'botist';
+  import SendError from 'botist/lib/Errors/SendError';
+
+  const bot = new Botist({
+    port: 5555,
+    scene: class extends MainScene {
+      public subscribe() {}
+    },
+  });
+
+  const telegram = new Telegram(
+    'TELEGRAM_TOKEN',
+    'TELEGRAM_WEBHOOK_HOST',
+  );
+  bot.adapter(telegram);
+
+  const integration = bot.getAdapter('Telegram');
+  if (integration) {
+    integration.sendText('123456789', 'Hello!').catch((err: SendError) => {
+    console.log(err);
+    // SendError: Telegram with StatusCodeError 403. Forbidden: bot was blocked by the user
+    // {
+    //   adapter: 'Telegram',
+    //   chatId: '123456789',
+    //   messageType: 'text',
+    //   type: 'StatusCodeError',
+    //   text: 'Forbidden: bot was blocked by the user',
+    //   code: 403,
+    //   statusCode: 403
+    // }
+    });
+  }
+  ```
+
+  The error will not be thrown on the place when global handler is declared because it will intercept all errors.
+  Example of catching error by global handler:
+  ```ts
+  import { Botist, MainScene, Telegram } from 'botist';
+  import SendError from 'botist/lib/Errors/SendError';
+
+  const bot = new Botist({
+    port: 5555,
+    scene: class extends MainScene {
+      public subscribe() {}
+    },
+    catch: (err: SendError) => {
+      console.log(err);
+      // SendError: Telegram with StatusCodeError 403. Forbidden: bot was blocked by the user
+      // {
+      //   adapter: 'Telegram',
+      //   chatId: '123456789',
+      //   messageType: 'text',
+      //   type: 'StatusCodeError',
+      //   text: 'Forbidden: bot was blocked by the user',
+      //   code: 403,
+      //   statusCode: 403
+      // }
+    }
+  });
+
+  const telegram = new Telegram(
+    'TELEGRAM_TOKEN',
+    'TELEGRAM_WEBHOOK_HOST',
+  );
+  bot.adapter(telegram);
+
+  const integration = bot.getAdapter('Telegram');
+  if (integration) {
+    integration.sendText('123456789', 'Hello!');
+  }
+  ```
+
 ## 0.7.0 (May 17, 2020)
 
 ### Added

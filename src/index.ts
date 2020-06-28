@@ -8,6 +8,7 @@ export {
     IMessage,
     ITextMessage,
     IImageMessage,
+    MessageType,
 } from './Message.t';
 export { MainScene, IScene } from './MainScene';
 export { Scene } from './Scene';

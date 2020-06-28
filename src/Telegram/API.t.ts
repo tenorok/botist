@@ -7,7 +7,8 @@ export interface IResult {
 
 export interface IError {
     ok: false;
-    error_code: 404;
+    /** https://core.telegram.org/method/messages.sendMessage#possible-errors */
+    error_code: number;
     description: string;
 }
 
