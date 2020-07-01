@@ -3,7 +3,6 @@
 ### Changed
 - Property `name` renamed to `adapter` in message object.
 
-
 ### Added
 - Created `chatId` and `messageType` properties to the error object of sending messages methods.
 
@@ -19,11 +18,7 @@
     },
   });
 
-  const telegram = new Telegram(
-    'TELEGRAM_TOKEN',
-    'TELEGRAM_WEBHOOK_HOST',
-  );
-  bot.adapter(telegram);
+  bot.adapter(new Telegram('token', 'webHookUrl'));
 
   const integration = bot.getAdapter('Telegram');
   if (integration) {
@@ -57,23 +52,58 @@
     catch: (err: SendError) => {
       console.log(err);
       // SendError: Telegram with StatusCodeError 403. Forbidden: bot was blocked by the user
-      // {
-      //   adapter: 'Telegram',
-      //   chatId: '123456789',
-      //   messageType: 'text',
-      //   type: 'StatusCodeError',
-      //   text: 'Forbidden: bot was blocked by the user',
-      //   code: 403,
-      //   statusCode: 403
-      // }
     }
   });
 
-  const telegram = new Telegram(
-    'TELEGRAM_TOKEN',
-    'TELEGRAM_WEBHOOK_HOST',
-  );
-  bot.adapter(telegram);
+  bot.adapter(new Telegram('token', 'webHookUrl'));
+
+  const integration = bot.getAdapter('Telegram');
+  if (integration) {
+    integration.sendText('123456789', 'Hello!');
+  }
+  ```
+
+- Added the ability to declare middlewares for catching errors.
+
+  Example of catch-middleware declaration and using:
+  ```ts
+  // file: ForbiddenMiddleware.ts
+  import { CatchMiddleware } from 'botist';
+  import SendError from 'botist/lib/Errors/SendError';
+
+  export class ForbiddenMiddleware extends CatchMiddleware {
+    public catch(err: SendError): boolean {
+      if (error.code === 403) {
+        console.log(err);
+        // SendError: Telegram with StatusCodeError 403. Forbidden: bot was blocked by the user
+
+        // Returns true for prevent calling next middleware and global handler or on the place handler.
+        return true;
+      }
+
+      // Error was't handled by this middleware.
+      return false;
+    }
+  }
+  ```
+
+  ```ts
+  // file: index.ts
+  import { Botist, MainScene, Telegram } from 'botist';
+  import { ForbiddenMiddleware } from './ForbiddenMiddleware';
+
+  const bot = new Botist({
+    port: 5555,
+    scene: class extends MainScene {
+      public subscribe() {}
+    },
+    catch: () => {
+      // Will not invoked on error with code 403
+      // because the error will intercepted by ForbiddenMiddleware.
+    }
+  });
+
+  bot.adapter(new Telegram('token', 'webHookUrl'));
 
   const integration = bot.getAdapter('Telegram');
   if (integration) {
