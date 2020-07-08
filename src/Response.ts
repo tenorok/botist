@@ -17,7 +17,7 @@ export class Response {
         public readonly msg: IMessage,
     ) {
         this.from = {
-            name: adapter.name,
+            adapter: adapter.name,
             chatId: msg.chatId,
         };
     }

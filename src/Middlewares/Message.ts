@@ -78,14 +78,14 @@ export abstract class MessageMiddleware implements IMessageMiddleware {
     }
 
     /**
-     * Determines the need to applying middleware for scene and message.
+     * Determines the need to applying this middleware for scene and message.
      */
     public guard(_scene: IScene, _msg: IMessage): boolean {
         return true;
     }
 
     /**
-     * Determines the need to call the handlers of the next middleware.
+     * Determines the need to call handlers of the next middleware.
      */
     public continue(): boolean {
         return true;

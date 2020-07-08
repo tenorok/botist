@@ -8,7 +8,10 @@ import {
     IResponse as IBotistResponse,
     IErrorHandler,
 } from '../Botist';
-import { IBaseMessage } from '../Message.t';
+import {
+    IBaseMessage,
+    MessageType,
+} from '../Message.t';
 import SendError from '../Errors/SendError';
 
 interface ISendTextTelegramOptions extends API._.SendMessageOptions {
@@ -50,7 +53,7 @@ export class Telegram implements IAdapter {
         if (message) {
             if (message.text) {
                 const textMessage: IBaseMessage = {
-                    type: 'text',
+                    type: MessageType.text,
                     chatId: String(message.chat.id),
                     timestamp: message.date,
                     text: message.text,
@@ -113,9 +116,11 @@ export class Telegram implements IAdapter {
             // this._errorHandler always set when adapter added.
             return this._errorHandler!(new SendError({
                 adapter: Telegram.name,
+                chatId: params.id,
+                messageType: MessageType.text,
                 type: err.name,
-                code: err.error.error_code,
                 text: err.error.description,
+                code: err.error.error_code,
                 statusCode: err.statusCode,
             }));
         });

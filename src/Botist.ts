@@ -13,6 +13,7 @@ import { IScene } from './MainScene';
 import { Scenario } from './Scenario';
 import { Response } from './Response';
 import { IMessageMiddleware } from './Middlewares/Message';
+import { ICatchMiddleware } from './Middlewares/Catch';
 import SendError from './Errors/SendError';
 import { IEvent } from './Events/Event';
 
@@ -48,7 +49,7 @@ export interface IOptions {
 }
 
 export interface IFrom {
-    name: string;
+    adapter: string;
     chatId: string;
 }
 
@@ -57,16 +58,17 @@ export class Botist {
     private adaptersList: IAdapter[] = [];
     private beforeSceneList: IMessageMiddleware[] = [];
     private afterSceneList: IMessageMiddleware[] = [];
+    private catchList: ICatchMiddleware[] = [];
     private server: http.Server;
     private _mainScene: IScene;
     private currentScene: Map<string, IScene> = new Map();
-    private catch?: ICatch;
+    private globalCatch?: ICatch;
 
     constructor(options: IOptions) {
         this.express = express();
         this.express.use(express.json());
         this.server = this.express.listen(options.port);
-        this.catch = options.catch;
+        this.globalCatch = options.catch;
 
         this._mainScene = new options.scene(this);
     }
@@ -116,13 +118,17 @@ export class Botist {
         this.afterSceneList.push(middleware);
     }
 
+    public catch(middleware: ICatchMiddleware) {
+        this.catchList.push(middleware);
+    }
+
     private async onAdapterRequest(adapter: IAdapter, req: express.Request, res: express.Response) {
         const messages = adapter.onRequest(req, res);
         debugAdapter('%s requested %O', adapter.name, messages);
 
         messages: for (const baseMsg of messages) {
             const msg: IMessage = baseMsg as IMessage;
-            msg.name = adapter.constructor.name;
+            msg.adapter = adapter.constructor.name;
 
             const currentScene = this.getCurrentScene(msg);
             for (const middleware of [...this.beforeSceneList, currentScene, ...this.afterSceneList]) {
@@ -139,17 +145,23 @@ export class Botist {
     }
 
     @bind
-    private onError(err: SendError): Promise<IError> {
-        if (this.catch) {
-            this.catch(err);
+    private onError(error: SendError): Promise<IError> {
+        for (const middleware of this.catchList) {
+            if (middleware.catch(error)) {
+                return Promise.resolve(null);
+            }
+        }
+
+        if (this.globalCatch) {
+            this.globalCatch(error);
             return Promise.resolve(null);
         }
 
-        return Promise.reject(err);
+        return Promise.reject(error);
     }
 
     private getSceneKey(from: IFrom): string {
-        return from.name + from.chatId;
+        return from.adapter + from.chatId;
     }
 
     private getCurrentScene(from: IFrom): IScene {
