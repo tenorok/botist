@@ -1,4 +1,4 @@
-## [Unreleased]
+## 0.8.0 (July 8, 2020)
 
 ### Changed
 - Property `name` renamed to `adapter` in message object.
