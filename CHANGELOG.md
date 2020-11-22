@@ -1,4 +1,4 @@
-## [Unreleased]
+## 0.9.0 (November 22, 2020)
 
 ### Changed
 - The `continue(scene: IScene, msg: IMessage): boolean` method of middleware now accepts parameters similar to the `guard()` method.
