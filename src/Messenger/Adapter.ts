@@ -4,7 +4,9 @@ import request = require('request-promise-native');
 import {
     IAdapter,
     IResponse as IBotistResponse,
+    IError,
     IErrorHandler,
+    IPoll,
 } from '../Botist';
 import {
     IBaseMessage,
@@ -15,6 +17,12 @@ import SendError from '../Errors/SendError';
 interface ISendTextParams {
     id: string;
     text: string;
+}
+
+interface IErrorHandlerParams {
+    id: string;
+    messageType: MessageType;
+    err: API.IRequestError;
 }
 
 export class Messenger implements IAdapter {
@@ -69,6 +77,14 @@ export class Messenger implements IAdapter {
         });
     }
 
+    public sendPoll(_id: string, _poll: IPoll): Promise<IBotistResponse> {
+        /**
+         * Messenger does't support polls.
+         * @see https://developers.facebook.com/docs/messenger-platform/send-messages/#message_types
+         */
+        return Promise.resolve(null);
+    }
+
     private _sendText(params: ISendTextParams): Promise<IBotistResponse> {
         if (!params.text) {
             return Promise.resolve({ messageId: '' });
@@ -91,20 +107,34 @@ export class Messenger implements IAdapter {
                 messageId: res.message_id,
             };
         }).catch((err: API.IRequestError) => {
-            // this._errorHandler always set when adapter added.
-            return this._errorHandler!(new SendError({
-                adapter: Messenger.name,
-                chatId: params.id,
+            return this.handleError({
+                id: params.id,
                 messageType: MessageType.text,
-                type: err.error.error.type,
-                text: err.error.error.message,
-                code: err.error.error.code,
-                statusCode: err.statusCode,
-            }));
+                err,
+            });
         });
     }
 
     private hasMessageText(message: any): message is API.ITextMessage | API.IScrapingLinkMessage {
         return typeof message.message.text !== undefined;
+    }
+
+    private handleError(params: IErrorHandlerParams): Promise<IError> {
+        const {
+            id,
+            messageType,
+            err,
+        } = params;
+
+        // this._errorHandler always set when adapter added.
+        return this._errorHandler!(new SendError({
+            adapter: Messenger.name,
+            chatId: id,
+            messageType,
+            type: err.error.error.type,
+            text: err.error.error.message,
+            code: err.error.error.code,
+            statusCode: err.statusCode,
+        }));
     }
 }
