@@ -3,44 +3,54 @@ import { Response } from '../Response';
 import {
     ITextMessage,
     IImageMessage,
+    IPollMessage,
     IMessage,
+    MessageType,
 } from '../Message.t';
 import { IScene } from '../MainScene';
-import { SubscriberContext } from '../SubscriberContext';
+import { SceneContext } from '../SceneContext';
 
-export type ISubscriberCallback<M> = (this: SubscriberContext, msg: M, res: Response, next: () => void) => void;
+export type ISubscriberMatcher<M> = (this: SceneContext, msg: M) => boolean;
+export type ISubscriberCallback<M> = (this: SceneContext, msg: M, res: Response, next: () => void) => void;
 
 interface ISubscriberOptions {
     labels?: string[];
 }
 
-interface IMessageInnerOptions<TYPE extends string> extends Required<ISubscriberOptions> {
-    type: TYPE;
+interface IMessageInnerOptions<T extends MessageType> extends Required<ISubscriberOptions> {
+    type: T;
 }
 
 export interface ITextSubscriber {
-    text: string | RegExp;
+    matcher: ISubscriberMatcher<ITextMessage> | string | RegExp;
     callback: ISubscriberCallback<ITextMessage>;
-    options: IMessageInnerOptions<'text'>;
+    options: IMessageInnerOptions<MessageType.text>;
 }
 
 export interface IImageSubscriber {
+    matcher: ISubscriberMatcher<IImageMessage>;
     callback: ISubscriberCallback<IImageMessage>;
-    options: IMessageInnerOptions<'image'>;
+    options: IMessageInnerOptions<MessageType.image>;
 }
 
-export type ISubscriber = ITextSubscriber | IImageSubscriber;
+export interface IPollSubscriber {
+    matcher: ISubscriberMatcher<IPollMessage>;
+    callback: ISubscriberCallback<IPollMessage>;
+    options: IMessageInnerOptions<MessageType.poll>;
+}
+
+export type ISubscriber = ITextSubscriber | IImageSubscriber | IPollSubscriber;
 
 export interface ISubscribers {
     text: ITextSubscriber[];
     image: IImageSubscriber[];
+    poll: IPollSubscriber[];
 }
 
 export interface IMessageMiddleware {
-    subscribe(): void;
-    text(text: string | RegExp, callback: ISubscriberCallback<ITextMessage>): void | Promise<void>;
+    subscribers: ISubscribers;
     guard(scene: IScene, msg: IMessage): boolean;
-    continue(): boolean;
+    continue(scene: IScene, msg: IMessage): boolean;
     onMessage(adapter: IAdapter, scene: IScene, msg: IMessage, startHandlerIndex?: number): Promise<void>;
 }
 
@@ -48,7 +58,12 @@ export abstract class MessageMiddleware implements IMessageMiddleware {
     protected _subscribers: ISubscribers = {
         text: [],
         image: [],
+        poll: [],
     };
+
+    public get subscribers(): ISubscribers {
+        return this._subscribers;
+    }
 
     constructor(private botist: Botist) {
         this.subscribe();
@@ -57,24 +72,29 @@ export abstract class MessageMiddleware implements IMessageMiddleware {
     public abstract subscribe(): void;
 
     public text(
-        text: string | RegExp,
+        matcher: ISubscriberMatcher<ITextMessage> | string | RegExp,
         callback: ISubscriberCallback<ITextMessage>,
         options?: ISubscriberOptions,
     ): void {
-        const innerOptions: IMessageInnerOptions<'text'> = {
-            type: 'text',
-            labels: [],
-        };
-
-        if (options && options.labels) {
-            innerOptions.labels.push(...options.labels);
-        }
-
-        this._subscribers.text.push({
-            text,
+        this.subscriber<ITextSubscriber, MessageType.text>(
+            MessageType.text,
+            matcher,
             callback,
-            options: innerOptions,
-        });
+            options,
+        );
+    }
+
+    public poll(
+        matcher: ISubscriberMatcher<IPollMessage>,
+        callback: ISubscriberCallback<IPollMessage>,
+        options?: ISubscriberOptions,
+    ): void {
+        this.subscriber<IPollSubscriber, MessageType.poll>(
+            MessageType.poll,
+            matcher,
+            callback,
+            options,
+        );
     }
 
     /**
@@ -87,7 +107,7 @@ export abstract class MessageMiddleware implements IMessageMiddleware {
     /**
      * Determines the need to call handlers of the next middleware.
      */
-    public continue(): boolean {
+    public continue(_scene: IScene, _msg: IMessage): boolean {
         return true;
     }
 
@@ -99,7 +119,7 @@ export abstract class MessageMiddleware implements IMessageMiddleware {
     ): Promise<void> {
         const subscribers = this._subscribers[msg.type];
         for (let i = startSubscriberIndex; i < subscribers.length; i++) {
-            const ctx = new SubscriberContext(scene, msg);
+            const ctx = new SceneContext(scene, msg);
             const subscriber = subscribers[i];
             if (!ctx.match(subscriber)) {
                 continue;
@@ -111,5 +131,31 @@ export abstract class MessageMiddleware implements IMessageMiddleware {
                 return this.onMessage(adapter, scene, msg, i + 1);
             });
         }
+    }
+
+    private subscriber<
+        M extends ISubscriber,
+        T extends MessageType,
+    >(
+        type: T,
+        matcher: M['matcher'],
+        callback: M['callback'],
+        options?: ISubscriberOptions,
+    ) {
+        const innerOptions: IMessageInnerOptions<T> = {
+            type,
+            labels: [],
+        };
+
+        if (options && options.labels) {
+            innerOptions.labels.push(...options.labels);
+        }
+
+        // Subscriber type and information always matched.
+        (this._subscribers[type] as ITextSubscriber[]).push({
+            matcher,
+            callback,
+            options: innerOptions,
+        } as ITextSubscriber);
     }
 }

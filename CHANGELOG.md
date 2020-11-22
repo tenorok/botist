@@ -1,3 +1,95 @@
+## 0.9.0 (November 22, 2020)
+
+### Changed
+- The `continue(scene: IScene, msg: IMessage): boolean` method of middleware now accepts parameters similar to the `guard()` method.
+- Class `SubscriberContext` renamed to `SceneContext` because it's possible to create instance everywhere but not only use in the context of subscribers handlers.
+- The `getSceneSubscribers(filter?: ISubscribersFilter)` method removed in favor to `getSubscribers()` without parameters — you can filter result list outside by yourself.
+
+  Example of using updated `continue()` method, new `SceneContext` class and its method `getSubscribers()` together to determine that at least one subscriber handlers was matched:
+  ```ts
+  import { MessageMiddleware, SceneContext, IScene, IMessage } from 'botist';
+
+  export default class CustomMiddleware extends MessageMiddleware {
+      public continue(_scene: IScene, msg: IMessage): boolean {
+          const middleware = new SceneContext(this, msg);
+          // Move to next middleware only when no one handler of the current middleware has been matched.
+          return !middleware.getSubscribers().some(middleware.match);
+      }
+
+      public subscribe(): void {
+          this.text('/foo', () => {});
+          this.text('/bar', () => {});
+      }
+  }
+  ```
+
+### Added
+- Added possibility to use function as a matcher of `text()` subscriber:
+
+  ```ts
+  import { MainScene, ITextMessage } from 'botist';
+
+  class Main extends MainScene {
+    private static commands: string[] = ['/foo', '/bar'];
+
+    public subscribe() {
+      this.text(
+        (msg: ITextMessage) => {
+          // matcher
+          return Main.commands.includes(msg.text);
+        },
+        (msg: ITextMessage) => {
+          // handler
+        },
+      );
+    }
+  }
+  ```
+
+- Added work with polls. Currently it's supported only for the Telegram.
+
+  Example of sending new poll to the user:
+  ```ts
+  const integration = bot.getAdapter('Telegram');
+  if (integration) {
+    integration.sendPoll('123456789', {
+      question: 'How are you?',
+      options: [
+        'Fine',
+        'Good',
+        'Cool',
+      ],
+    });
+  }
+  ```
+
+  It's need to be careful with processing responses of a questions because user can choose an option at any moment from any scene. Generally handling of responses should be performed inside special middleware.
+  ```ts
+  import {
+    MessageMiddleware,
+    SceneContext,
+    IPollMessage,
+    IScene,
+    IMessage,
+  } from 'botist';
+
+  class PollsMiddleware extends MessageMiddleware {
+      public continue(_scene: IScene, msg: IMessage): boolean {
+          const middleware = new SceneContext(this, msg);
+          return !middleware.getSubscribers().some(middleware.match);
+      }
+
+      public subscribe(): void {
+          // Handling all responses to the polls.
+          this.poll(() => true, (msg: IPollMessage) => {
+              console.log(`User ${msg.pollId} chose ${msg.answers.join()}`);
+          });
+      }
+  }
+
+  bot.beforeScene(new PollsMiddleware(bot));
+  ```
+
 ## 0.8.0 (July 8, 2020)
 
 ### Changed

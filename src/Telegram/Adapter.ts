@@ -6,7 +6,9 @@ import {
     IAdapter,
     ITextMessageOptions,
     IResponse as IBotistResponse,
+    IError,
     IErrorHandler,
+    IPoll,
 } from '../Botist';
 import {
     IBaseMessage,
@@ -19,10 +21,26 @@ interface ISendTextTelegramOptions extends API._.SendMessageOptions {
     text: string;
 }
 
+interface ISendPollTelegramOptions {
+    chat_id: string;
+    question: string;
+    options: string[];
+    /** @default false */
+    allows_multiple_answers?: boolean;
+    /** @default true */
+    is_anonymous?: boolean;
+}
+
 interface ISendTextParams extends ITextMessageOptions {
     id: string;
     text: string;
     parseMode?: 'Markdown';
+}
+
+interface IErrorHandlerParams {
+    id: string;
+    messageType: MessageType;
+    err: API.IRequestError;
 }
 
 export class Telegram implements IAdapter {
@@ -47,10 +65,11 @@ export class Telegram implements IAdapter {
     }
 
     public onRequest(req: Request, res: Response): IBaseMessage[] {
-        const { message }: API._.Update = req.body;
+        const update: API.IUpdate = req.body;
         res.sendStatus(200);
 
-        if (message) {
+        if (update.message) {
+            const { message } = update;
             if (message.text) {
                 const textMessage: IBaseMessage = {
                     type: MessageType.text,
@@ -65,6 +84,16 @@ export class Telegram implements IAdapter {
 
                 return [textMessage];
             }
+        }
+
+        if (update.poll_answer) {
+            return [{
+                type: MessageType.poll,
+                chatId: String(update.poll_answer.user.id),
+                timestamp: Date.now(),
+                pollId: update.poll_answer.poll_id,
+                answers: update.poll_answer.option_ids,
+            }];
         }
 
         return [];
@@ -84,6 +113,33 @@ export class Telegram implements IAdapter {
             text: markdown,
             parseMode: 'Markdown',
             ...options,
+        });
+    }
+
+    public sendPoll(id: string, poll: IPoll): Promise<IBotistResponse> {
+        const json: ISendPollTelegramOptions = {
+            chat_id: id,
+            question: poll.question,
+            options: poll.options,
+            allows_multiple_answers: poll.multiple,
+            // Need to use only anonymous polls for correct working scenes mechanism.
+            is_anonymous: false,
+        };
+
+        return request.post({
+            url: this.apiUrl + 'sendPoll',
+            json,
+        }).then((res: API.IResult) => {
+            return {
+                messageId: String(res.result.message_id),
+                pollId: res.result.poll!.id,
+            };
+        }).catch((err: API.IRequestError) => {
+            return this.handleError({
+                id,
+                messageType: MessageType.poll,
+                err,
+            });
         });
     }
 
@@ -113,16 +169,11 @@ export class Telegram implements IAdapter {
                 messageId: String(res.result.message_id),
             };
         }).catch((err: API.IRequestError) => {
-            // this._errorHandler always set when adapter added.
-            return this._errorHandler!(new SendError({
-                adapter: Telegram.name,
-                chatId: params.id,
+            return this.handleError({
+                id: params.id,
                 messageType: MessageType.text,
-                type: err.name,
-                text: err.error.description,
-                code: err.error.error_code,
-                statusCode: err.statusCode,
-            }));
+                err,
+            });
         });
     }
 
@@ -145,5 +196,24 @@ export class Telegram implements IAdapter {
                 console.error(`${Telegram.name}: Failed to set webhook`, err.error);
             }
         });
+    }
+
+    private handleError(params: IErrorHandlerParams): Promise<IError> {
+        const {
+            id,
+            messageType,
+            err,
+        } = params;
+
+        // this._errorHandler always set when adapter added.
+        return this._errorHandler!(new SendError({
+            adapter: Telegram.name,
+            chatId: id,
+            messageType,
+            type: err.name,
+            text: err.error.description,
+            code: err.error.error_code,
+            statusCode: err.statusCode,
+        }));
     }
 }

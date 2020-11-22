@@ -19,6 +19,8 @@ import { IEvent } from './Events/Event';
 
 export interface ISuccess {
     messageId: string;
+    /** Exists when sending poll. */
+    pollId?: string;
 }
 
 /** Error is null when it was handled by catch callback. */
@@ -30,6 +32,12 @@ export interface ITextMessageOptions {
     disableWebPagePreview?: boolean;
 }
 
+export interface IPoll {
+    question: string;
+    options: string[];
+    multiple?: boolean;
+}
+
 export interface IAdapter {
     readonly name: string;
     readonly webHookPath: string;
@@ -37,6 +45,7 @@ export interface IAdapter {
     onRequest(req: express.Request, res: express.Response): IBaseMessage[];
     sendText(id: string, text: string, options?: ITextMessageOptions): Promise<IResponse>;
     sendMarkdown(id: string, markdown: string, options?: ITextMessageOptions): Promise<IResponse>;
+    sendPoll(id: string, poll: IPoll): Promise<IResponse>;
 }
 
 export type IErrorHandler = (err: SendError) => Promise<IError>;
@@ -137,7 +146,7 @@ export class Botist {
                 }
 
                 await middleware.onMessage(adapter, currentScene, msg);
-                if (!middleware.continue()) {
+                if (!middleware.continue(currentScene, msg)) {
                     continue messages;
                 }
             }
